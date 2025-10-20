@@ -1,0 +1,556 @@
+/* Remove all Tailwind directives */
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+/* Basic CSS reset and styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+  background-color: #FFFFFF; /* White background */
+  color: #000000; /* Dark text for white background */
+  line-height: 1.6;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: auto; /* Allow vertical scrolling */
+}
+
+/* Hide scrollbars but keep functionality */
+html {
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: auto; /* Allow vertical scrolling */
+}
+
+/* Hide scrollbars on webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+  display: none !important;
+}
+
+::-webkit-scrollbar-track {
+  display: none !important;
+}
+
+::-webkit-scrollbar-thumb {
+  display: none !important;
+}
+
+/* Hide scrollbars on Firefox */
+html {
+  scrollbar-width: none !important;
+}
+
+/* Force hide scrollbars on all elements */
+* {
+  scrollbar-width: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Ensure no horizontal overflow on all elements */
+* {
+  max-width: 100%;
+}
+
+/* Custom no-scrollbar class */
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* SINGLE SOURCE OF TRUTH FOR ALL TEXT ELEMENTS - MAXIMUM SPECIFICITY */
+
+/* H1 Elements - Dark color with Fraunces Black */
+h1,
+body h1,
+main h1,
+div h1,
+header h1,
+* h1 {
+  color: #131212 !important;
+  font-family: 'Fraunces', serif !important;
+  font-weight: 900 !important;
+}
+
+/* H2 Elements - Fraunces Bold */
+h2,
+body h2,
+main h2,
+div h2,
+header h2,
+* h2 {
+  color: #121314 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* P Elements - Inter Semi-Bold */
+p,
+body p,
+main p,
+div p,
+header p,
+* p {
+  color: #121314 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Progress indicator text - Inter Semi-Bold Blue */
+.progress-indicator,
+.progress-indicator span {
+  color: #121314 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+/* Notification text - Inter Semi-Bold Yellow */
+.notification-text,
+.notification-text span {
+  color: #a86c4f !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+/* Reset button - Inter Semi-Bold Yellow */
+.reset-button {
+  background-color: rgba(251, 191, 36, 0.2) !important;
+  color: #DA9573 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.reset-button:hover {
+  background-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+/* Fraunces Black for all buttons */
+button {
+  font-family: 'Fraunces', serif !important;
+  font-weight: 900 !important;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.rounded {
+  border-radius: 0.25rem;
+}
+
+.border {
+  border: 1px solid #333; /* Darker border for dark theme */
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.m-4 {
+  margin: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.bg-gray-50 {
+  background-color: #1a1a1a; /* Dark background */
+}
+
+.bg-white {
+  background-color: #ffffff; /* Keep white for image backgrounds */
+}
+
+.text-gray-600 {
+  color: #a0a0a0; /* Lighter gray for dark theme */
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.object-cover {
+  object-fit: cover;
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #9333ea;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #7e22ce;
+}
+
+.btn-outline {
+  background-color: #2a2a2a; /* Darker for dark theme */
+  border: 1px solid #444; /* Darker border for dark theme */
+  color: #e0e0e0; /* Light text for dark theme */
+}
+
+.btn-outline:hover {
+  background-color: #333; /* Darker hover for dark theme */
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  border-radius: 9999px;
+}
+
+/* Carousel specific styles */
+.carousel-container {
+  border: none; /* Remove border */
+  overflow: hidden;
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+.carousel {
+  position: relative;
+}
+
+.carousel-inner {
+  display: flex;
+  overflow-x: hidden;
+}
+
+.carousel-item {
+  min-width: 100%;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.carousel-image-container {
+  position: relative;
+  height: 150px; /* Reduced height */
+  width: 100%;
+  overflow: hidden;
+  background-color: white; /* Keep white background for images */
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Changed to contain */
+}
+
+.carousel-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 9999px;
+  width: 30px; /* Smaller buttons */
+  height: 30px; /* Smaller buttons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.carousel-nav-button:hover {
+  opacity: 1;
+  background-color: white;
+}
+
+.carousel-nav-button-left {
+  left: 0.5rem;
+}
+
+.carousel-nav-button-right {
+  right: 0.5rem;
+}
+
+.selected-image {
+  box-shadow: 0 0 0 2px #9333ea;
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Darker overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.dialog-content {
+  background-color: #222; /* Dark dialog */
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 28rem;
+  width: 100%;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  color: #e0e0e0; /* Light text */
+}
+
+.dialog-header {
+  margin-bottom: 1rem;
+}
+
+.dialog-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+}
+
+.dialog-description {
+  color: #a0a0a0;
+  font-size: 0.875rem;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.radio-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.radio-item {
+  border: 2px solid #444; /* Darker border */
+  border-radius: 0.375rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  background-color: #2a2a2a; /* Dark background */
+}
+
+.radio-item.selected {
+  border-color: #9333ea;
+}
+
+.radio-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  margin-bottom: 0.5rem;
+  margin: 0 auto 0.5rem;
+}
+
+.radio-icon-warpcast {
+  background-color: #3a2a4a; /* Darker for dark theme */
+  color: #b388ff;
+}
+
+.radio-icon-coinbase {
+  background-color: #1a365d; /* Darker for dark theme */
+  color: #60a5fa;
+}
+
+.radio-label {
+  text-align: center;
+}
+
+.radio-label-title {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #e0e0e0;
+}
+
+.radio-label-description {
+  font-size: 0.75rem;
+  color: #a0a0a0;
+}
+
+.selected-images-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.selected-image-thumbnail {
+  height: 5rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  border: 1px solid #444; /* Darker border */
+  background-color: white; /* Keep white for images */
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Animation for loader */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.h-4 {
+  height: 1rem;
+}
+
+.w-4 {
+  width: 1rem;
+}
+
+/* Add to globals.css */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  background-color: #1a1a1a !important; /* Force dark background */
+  color: #e0e0e0 !important; /* Force light text */
+}
+
+/* For Farcaster mini-app specific styling */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.25rem !important;
+    color: #e0e0e0 !important;
+  }
+  
+  h2 {
+    font-size: 1rem !important;
+    color: #e0e0e0 !important;
+  }
+  
+  p {
+    font-size: 0.875rem !important;
+    color: #a0a0a0 !important;
+  }
+}
+
+/* Force dark background in all contexts */
+.bg-background {
+  background-color: #1a1a1a !important;
+}
+
+/* Specific styles for carousel borders */
+.carousel-container > div {
+  border-top: 1px solid #444;
+  margin-bottom: -1px !important;
+}
+
+.carousel-container > div:first-child {
+  border-top: none;
+}
+
+/* Remove rounded corners from carousels */
+.carousel-image-container, 
+.carousel-container,
+.carousel-container > div {
+  border-radius: 0 !important;
+}

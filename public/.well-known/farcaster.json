@@ -1,0 +1,31 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEwNzY1ODMsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhhODZDYmQxOTYyMDg4QjlFODE0N0UxMjI1NzJhMzcxMjJDYTQ0NmMyIn0",
+    "payload": "eyJkb21haW4iOiJkZWVkaXNjby1taW5pa2l0LWFwcC52ZXJjZWwuYXBwIn0",
+    "signature": "MHhmNTBlZjkzZjBkYjE3MzkyYWUzMTE2M2E1NzZlOWI1NTYxMjIzNDE3NGJjNDcyYTAxMmYxYjY3MTIyYzNhMjJlNDZjNGE1YzRhYTUyZjNiYTNkYjMyNzIwZTNhY2RhNzgzMTdlZGE2NGEzOGYyN2NkNjRlMzMzMGVhYzEwODg0ZjFj"
+  },
+  "frame": {
+    "version": "1",
+    "name": "NFT Game Character Generator",
+    "subtitle": "Build Your Hero. Mint. Play.",
+    "screenshotUrls": [
+      "https://deedisco-minikit-app.vercel.app/screenshot_001.png",
+      "https://deedisco-minikit-app.vercel.app/screenshot_002.png",
+      "https://deedisco-minikit-app.vercel.app/screenshot_003.png"
+    ],
+    "primaryCategory": "games",
+    "tags": ["nft", "gaming", "character", "mint", "evolution"],
+    "heroImageUrl": "https://deedisco-minikit-app.vercel.app/hero.png",
+    "tagline": "Mix. Mint. Play to Evolve.",
+    "ogTitle": "Deedisco – Mix, Mint, Play",
+    "ogDescription": "Build and mint a modular fighter. Combine parts, evolve through gameplay, and win your way.",
+    "ogImageUrl": "https://deedisco-minikit-app.vercel.app/og.png",
+    "iconUrl": "https://deedisco-minikit-app.vercel.app/icon.png",
+    "homeUrl": "https://deedisco-minikit-app.vercel.app",
+    "imageUrl": "https://deedisco-minikit-app.vercel.app/image.png",
+    "buttonTitle": "Build a Fighter. Play to Win.",
+    "splashImageUrl": "https://deedisco-minikit-app.vercel.app/splash.png",
+    "splashBackgroundColor": "#eeccff",
+    "webhookUrl": "https://deedisco-minikit-app.vercel.app/api/webhook"
+  }
+}
