@@ -145,7 +145,7 @@ export default function Home() {
       </header>
 
       {/* Carousel container - retry deployment */}
-      <div className="carousel-container w-[360px] h-[360px] sm:w-[450px] sm:h-[450px] m-0 p-0 mx-auto">
+      <div className="carousel-container w-[360px] h-[360px] sm:w-[450px] sm:h-[450px] my-2 p-0 mx-auto">
         {carouselData.map((carousel, index) => (
           <div
             key={carousel.id}
@@ -172,13 +172,12 @@ export default function Home() {
         {clickCount < CLICK_THRESHOLD ? (
           /* Show progress indicator when clicks < 6 */
           <div className="text-xs flex items-center justify-center gap-2 progress-indicator">
-            <span>Explore the collection! </span>
             <div className="flex gap-1">
               {Array.from({ length: CLICK_THRESHOLD }, (_, i) => (
                 <div
                   key={i}
                   className={`w-2 h-2 rounded-full ${
-                    i >= (CLICK_THRESHOLD - clickCount) ? "bg-gray-300" : "bg-blue-400"
+                    i >= (CLICK_THRESHOLD - clickCount) ? "border-2 border-gray-300" : "bg-gray-300"
                   }`}
                 />
               ))}
@@ -186,15 +185,14 @@ export default function Home() {
           </div>
         ) : (
           /* Show notification when clicks >= 6 */
-          <div className="text-sm animate-pulse flex items-center justify-center gap-2 notification-text">
-            <span>🔒 Cards are hidden - </span>
+          <div className="text-sm animate-pulse flex flex-col items-center justify-center gap-1 notification-text">
             <button
               onClick={handleReset}
               className="text-sm px-2 py-1 rounded transition-colors reset-button"
             >
               Reset
             </button>
-            <span> to explore more!</span>
+            <span>and explore more!</span>
           </div>
         )}
       </div>
