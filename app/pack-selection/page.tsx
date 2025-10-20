@@ -79,14 +79,6 @@ export default function PackSelection() {
         />
       </div>
 
-
-      {/* Pack Description */}
-      <div className="text-center mb-3">
-        <p className="text-sm font-medium">
-          {getPackDescription(selectedPack)}
-        </p>
-      </div>
-
       {/* Buy Button - Links to existing wallet popup */}
       <div className="flex justify-center w-full">
         <MintButton
@@ -106,6 +98,13 @@ export default function PackSelection() {
           customButtonText={`Buy ${packData[selectedPack]?.name}`}
           showOnlySelected={true}
         />
+      </div>
+
+      {/* Pack Description */}
+      <div className="text-center mt-4 mb-3">
+        <p className="text-sm font-medium">
+          {getPackDescription(selectedPack)}
+        </p>
       </div>
 
       {/* Back to Main page button - centered under buy button */}
