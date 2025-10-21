@@ -84,18 +84,20 @@ export default function PackCarousel({
       {/* Navigation buttons */}
       <button
         onClick={handlePrevious}
-        className="absolute left-1 top-1/2 -translate-y-1/2 z-10 p-5 rounded-full bg-blue-200 hover:bg-blue-300 transition-colors shadow-sm"
+        className="absolute top-1/2 -translate-y-1/2 z-10 p-6 rounded-full"
+        style={{ left: '-20px', background: 'transparent' }}
         aria-label="Previous pack"
       >
-        <ChevronLeft className="h-6 w-6 text-black" />
+        <ChevronLeft className="h-5 w-5 text-black" />
       </button>
 
       <button
         onClick={handleNext}
-        className="absolute right-1 top-1/2 -translate-y-1/2 z-10 p-5 rounded-full bg-blue-200 hover:bg-blue-300 transition-colors shadow-sm"
+        className="absolute top-1/2 -translate-y-1/2 z-10 p-6 rounded-full"
+        style={{ right: '-20px', background: 'transparent' }}
         aria-label="Next pack"
       >
-        <ChevronRight className="h-6 w-6 text-black" />
+        <ChevronRight className="h-5 w-5 text-black" />
       </button>
     </div>
   )
