@@ -1,6 +1,6 @@
 // app/page.tsx
 // after random selection implemented
-// reverted to commit d692ac7
+// before implementing mining function on BASE testnet
 
 "use client"
 
@@ -175,7 +175,7 @@ export default function Home() {
               onClick={handleReset}
               className="text-white font-semibold"
               style={{ 
-                backgroundColor: '#EBA684',
+                backgroundColor: '#E4804A',
                 borderRadius: '50px',
                 fontFamily: 'Fraunces, serif',
                 fontWeight: 900,
