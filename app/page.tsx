@@ -144,32 +144,58 @@ export default function Home() {
         </h2>
       </header>
 
-      {/* Carousel container - retry deployment */}
-      <div className="carousel-container w-[360px] h-[360px] sm:w-[450px] sm:h-[450px] my-2 p-0 mx-auto">
-        {carouselData.map((carousel, index) => (
-          <div
-            key={carousel.id}
-            className="m-0 p-0"
-            style={{ 
-              margin: "0px", 
-              padding: "0px"
-            }}
-          >
-            <ImageCarousel
-              images={carousel.images}
-              selectedIndex={selectedImages[index]}
-              onSelect={(imageIndex) => handleImageSelect(index, imageIndex)}
-              onNavigationClick={handleNavigationClick}
-              showOverlay={showOverlay}
-              resetTrigger={resetTrigger}
-            />
+      {/* Carousel container with reset button overlay - retry deployment */}
+      <div className="relative w-[360px] h-[360px] sm:w-[450px] sm:h-[450px] mt-4 mb-2 p-0 mx-auto">
+        <div className="carousel-container w-full h-full">
+          {carouselData.map((carousel, index) => (
+            <div
+              key={carousel.id}
+              className="m-0 p-0"
+              style={{ 
+                margin: "0px", 
+                padding: "0px"
+              }}
+            >
+              <ImageCarousel
+                images={carousel.images}
+                selectedIndex={selectedImages[index]}
+                onSelect={(imageIndex) => handleImageSelect(index, imageIndex)}
+                onNavigationClick={handleNavigationClick}
+                showOverlay={showOverlay}
+                resetTrigger={resetTrigger}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Reset button overlay - shows when threshold reached */}
+        {showOverlay && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-50 gap-2">
+            <button
+              onClick={handleReset}
+              className="text-white font-semibold shadow-2xl"
+              style={{ 
+                backgroundColor: '#ff6b35',
+                borderRadius: '50px',
+                fontFamily: 'Fraunces, serif',
+                fontWeight: 900,
+                paddingTop: '16px',
+                paddingBottom: '16px',
+                paddingLeft: '32px',
+                paddingRight: '32px',
+                animation: 'pulsateButton 1.5s ease-in-out infinite'
+              }}
+            >
+              Reset
+            </button>
+            <span className="text-sm notification-text">to explore more!</span>
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Progress indicator and notification moved below carousel */}
+      {/* Progress indicator moved below carousel */}
       <div className="mb-1 min-h-[20px] flex items-center justify-center">
-        {clickCount < CLICK_THRESHOLD ? (
+        {clickCount < CLICK_THRESHOLD && (
           /* Show progress indicator when clicks < 6 */
           <div className="text-xs flex items-center justify-center gap-2 progress-indicator">
             <div className="flex gap-1">
@@ -183,21 +209,10 @@ export default function Home() {
               ))}
             </div>
           </div>
-        ) : (
-          /* Show notification when clicks >= 6 */
-          <div className="text-sm animate-pulse flex flex-col items-center justify-center gap-1 notification-text">
-            <button
-              onClick={handleReset}
-              className="text-sm px-2 py-1 rounded transition-colors reset-button"
-            >
-              Reset
-            </button>
-            <span>and explore more!</span>
-          </div>
         )}
       </div>
 
-      <div className="mt-4 mb-2 flex justify-center w-full">
+      <div className="mt-4 mb-1 flex justify-center w-full">
         <Link href="/pack-selection">
           <button
             type="button"
@@ -221,7 +236,7 @@ export default function Home() {
       </div>
 
       {/* Description text moved after buy button */}
-      <div className="text-center mb-2">
+      <div className="text-center mt-4 mb-2">
         <p className="text-xs sm:text-sm">
           Collect, trade, complete originals or create new sets.<br />
           Earn license fees on every reuse!
