@@ -10,6 +10,7 @@ import { useToast } from "../../../lib/hooks/use-toast";
 import { useMintPack } from "../../../lib/hooks/useMintPack";
 import { useAccount, useConnect } from "wagmi";
 import { mockContract } from "../../../lib/mock-contract";
+import { useMiniAppContext } from "../../../lib/hooks/useMiniAppContext";
 
 type Wallet = "warpcast" | "coinbase" | "metamask";
 type Img = { id: number; src: string; alt: string };
@@ -34,6 +35,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { mintPack, isLoading, result, error } = useMintPack();
+  const { isMiniApp, isLoading: isContextLoading } = useMiniAppContext();
   const [open, setOpen] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [useRealContract, setUseRealContract] = useState(false); // Toggle for testing
@@ -83,8 +85,19 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // Auto-connect in Mini App context
+  useEffect(() => {
+    if (isMiniApp && !isContextLoading && !isConnected && open) {
+      setConnectionStatus("Auto-connecting to Warpcast wallet...");
+      // Auto-connect to the first available connector (should be Farcaster Mini App)
+      if (connectors.length > 0) {
+        connect({ connector: connectors[0] });
+      }
+    }
+  }, [isMiniApp, isContextLoading, isConnected, open, connect, connectors]);
+
   const handleMint = async () => {
-    if (useRealContract && !isConnected) {
+    if (!isMiniApp && useRealContract && !isConnected) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to mint NFTs.",
@@ -94,7 +107,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
     }
 
     try {
-      if (useRealContract && isConnected) {
+      if ((isMiniApp && isConnected) || (!isMiniApp && useRealContract && isConnected)) {
         // Use real contract with actual wallet connection
         const mintResult = await mintPack();
         
@@ -338,18 +351,20 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                 Choose your wallet
               </Dialog.Description>
 
-              {/* Testing Toggle */}
-              <div className="mb-4 flex items-center justify-center gap-2">
-                <label className="flex items-center gap-2 text-sm" style={{ color: '#131212' }}>
-                  <input
-                    type="checkbox"
-                    checked={useRealContract}
-                    onChange={(e) => setUseRealContract(e.target.checked)}
-                    className="rounded"
-                  />
-                  Use Real Contract (requires wallet connection)
-                </label>
-              </div>
+              {/* Testing Toggle - Only show in browser mode */}
+              {!isMiniApp && (
+                <div className="mb-4 flex items-center justify-center gap-2">
+                  <label className="flex items-center gap-2 text-sm" style={{ color: '#131212' }}>
+                    <input
+                      type="checkbox"
+                      checked={useRealContract}
+                      onChange={(e) => setUseRealContract(e.target.checked)}
+                      className="rounded"
+                    />
+                    Use Real Contract (requires wallet connection)
+                  </label>
+                </div>
+              )}
 
               {/* Pack Price Display */}
               <div className="mb-4 text-center">
@@ -357,37 +372,39 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                   Pack Price: 0.001 ETH
                 </div>
                 <div className="text-sm" style={{ color: '#666' }}>
-                  {useRealContract ? "Real payment required" : "Mock payment (testing)"}
+                  {isMiniApp ? "Connected to Warpcast wallet" : (useRealContract ? "Real payment required" : "Mock payment (testing)")}
                 </div>
               </div>
 
-              {/* Wallet selector - Vertical list */}
-              <div className="space-y-3">
-                <WalletCard
-                  id="coinbase"
-                  label="Coinbase Wallet"
-                  desc=""
-                  icon="coinbase"
-                  selected={walletType === "coinbase"}
-                  onSelect={() => setWalletType("coinbase")}
-                />
-                <WalletCard
-                  id="warpcast"
-                  label="Warpcast Wallet"
-                  desc=""
-                  icon="warpcast"
-                  selected={walletType === "warpcast"}
-                  onSelect={() => setWalletType("warpcast")}
-                />
-                <WalletCard
-                  id="metamask"
-                  label="MetaMask Wallet"
-                  desc=""
-                  icon="metamask"
-                  selected={walletType === "metamask"}
-                  onSelect={() => setWalletType("metamask")}
-                />
-              </div>
+              {/* Wallet selector - Only show in browser mode */}
+              {!isMiniApp && (
+                <div className="space-y-3">
+                  <WalletCard
+                    id="coinbase"
+                    label="Coinbase Wallet"
+                    desc=""
+                    icon="coinbase"
+                    selected={walletType === "coinbase"}
+                    onSelect={() => setWalletType("coinbase")}
+                  />
+                  <WalletCard
+                    id="warpcast"
+                    label="Warpcast Wallet"
+                    desc=""
+                    icon="warpcast"
+                    selected={walletType === "warpcast"}
+                    onSelect={() => setWalletType("warpcast")}
+                  />
+                  <WalletCard
+                    id="metamask"
+                    label="MetaMask Wallet"
+                    desc=""
+                    icon="metamask"
+                    selected={walletType === "metamask"}
+                    onSelect={() => setWalletType("metamask")}
+                  />
+                </div>
+              )}
 
               {/* Actions */}
               <div className="mt-6 flex justify-between gap-3">
@@ -414,7 +431,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                   </button>
                 </Dialog.Close>
 
-    {useRealContract && !isConnected ? (
+    {(!isMiniApp && useRealContract && !isConnected) ? (
       <button
         onClick={async () => {
           setConnectionStatus(`Attempting to connect ${walletType} wallet...`);
