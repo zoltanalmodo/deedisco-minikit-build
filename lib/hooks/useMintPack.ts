@@ -3,6 +3,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { nftContractConfig, generateSecureRandomCards } from '../contract';
 import { config } from '../config';
+import { mockContract } from '../mock-contract';
 
 export interface MintPackResult {
   success: boolean;
@@ -32,42 +33,21 @@ export function useMintPack() {
     setResult(null);
 
     try {
-      // Generate random cards for the pack
-      const randomCards = generateSecureRandomCards(config.totalCards, config.cardsPerPack);
+      // For now, use mock contract for testing
+      // TODO: Replace with real contract once deployed
+      const mockResult = await mockContract.mintPack(address, config.cardsPerPack);
       
-      // Call the mintPack function on the contract
-      writeContract({
-        address: nftContractConfig.address,
-        abi: nftContractConfig.abi,
-        functionName: 'mintPack',
-        args: [address, config.cardsPerPack],
-      });
-
-      // Wait for transaction to be confirmed
-      if (hash) {
-        const receipt = await new Promise((resolve, reject) => {
-          const checkReceipt = () => {
-            if (isSuccess) {
-              resolve(hash);
-            } else if (error) {
-              reject(error);
-            } else {
-              setTimeout(checkReceipt, 1000);
-            }
-          };
-          checkReceipt();
-        });
-
+      if (mockResult.success) {
         const successResult: MintPackResult = {
           success: true,
-          transactionHash: hash,
-          tokenIds: randomCards,
+          transactionHash: mockResult.transactionHash,
+          tokenIds: mockResult.tokenIds,
         };
         
         setResult(successResult);
         return successResult;
       } else {
-        throw new Error('Transaction failed to submit');
+        throw new Error('Mock minting failed');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
