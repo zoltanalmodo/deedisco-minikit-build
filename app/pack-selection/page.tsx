@@ -5,7 +5,6 @@ import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import PackCarousel from "@/app/components/carousel/pack-carousel"
 import MintButton from "@/app/components/carousel/mint-button"
 import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
 
 // Pack data - 4 pack options as requested
 const packData = [
@@ -107,11 +106,28 @@ export default function PackSelection() {
         </p>
       </div>
 
-      {/* Back to Main page button - centered under buy button */}
+      {/* Back button - centered under buy button */}
       <div className="flex justify-center w-full mt-4">
         <Link href="/">
-          <button className="flex items-center text-blue-600 hover:text-blue-500 transition-colors text-sm">
-            <ChevronLeft className="h-4 w-4 mr-1" /> Back to Main
+          <button
+            type="button"
+            className="font-semibold transition-colors text-sm sm:text-base"
+            style={{ 
+              backgroundColor: 'transparent',
+              borderRadius: '50px',
+              fontFamily: 'Fraunces, serif',
+              fontWeight: 900,
+              paddingTop: '16px',
+              paddingBottom: '16px',
+              paddingLeft: '32px',
+              paddingRight: '32px',
+              border: '2px solid #8FC5FF',
+              color: '#8FC5FF'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(143, 197, 255, 0.1)'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
+          >
+            Back
           </button>
         </Link>
       </div>
