@@ -1,5 +1,5 @@
 // app/components/carousel/mint-button.tsx
-// after random selection implemented
+// Real minting implementation with BASE testnet
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +7,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { useToast } from "../../../lib/hooks/use-toast";
+import { useMintPack } from "../../../lib/hooks/useMintPack";
+import { useAccount } from "wagmi";
 
 type Wallet = "warpcast" | "coinbase";
 type Img = { id: number; src: string; alt: string };
@@ -28,8 +30,9 @@ interface MintButtonProps {
 
 export default function MintButton({ randomFrom, onMint, customButtonText, showOnlySelected = false }: MintButtonProps) {
   const { toast } = useToast();
+  const { address, isConnected } = useAccount();
+  const { mintPack, isLoading, result, error } = useMintPack();
   const [open, setOpen] = useState(false);
-  const [isMinting, setIsMinting] = useState(false);
   const [walletType, setWalletType] = useState<Wallet>("warpcast");
   const [pack, setPack] = useState<Img[]>([]); // the locked random set for this modal open
 
@@ -63,26 +66,37 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
   }, [open]);
 
   const handleMint = async () => {
-    setIsMinting(true);
-    try {
-      await onMint?.({ pack, wallet: walletType });
-      if (!onMint) await new Promise((r) => setTimeout(r, 1000)); // demo delay
-
+    if (!isConnected) {
       toast({
-        title: "NFTs Minted Successfully!",
-        description: `${pack.length} NFTs have been minted to your ${
-          walletType === "warpcast" ? "Warpcast" : "Coinbase"
-        } wallet.`,
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to mint NFTs.",
+        variant: "destructive",
       });
-      setOpen(false);
-    } catch {
+      return;
+    }
+
+    try {
+      const mintResult = await mintPack();
+      
+      if (mintResult.success) {
+        toast({
+          title: "NFTs Minted Successfully!",
+          description: `3 NFTs have been minted to your wallet. Transaction: ${mintResult.transactionHash?.slice(0, 10)}...`,
+        });
+        setOpen(false);
+      } else {
+        toast({
+          title: "Minting Failed",
+          description: mintResult.error || "There was an error minting your NFTs. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
       toast({
         title: "Minting Failed",
         description: "There was an error minting your NFTs. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsMinting(false);
     }
   };
 
@@ -195,7 +209,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
             <button
               type="button"
               onClick={handleMint}
-              disabled={isMinting || pack.length !== 3}
+              disabled={isLoading || !isConnected || pack.length !== 3}
               className="inline-flex items-center justify-center text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
               style={{ 
                 backgroundColor: '#131212',
@@ -210,11 +224,13 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
               onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
               onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
             >
-              {isMinting ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Buying...
+                  Minting...
                 </>
+              ) : !isConnected ? (
+                "Connect Wallet"
               ) : (
                 "Buy Pack"
               )}
