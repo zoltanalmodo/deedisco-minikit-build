@@ -173,9 +173,9 @@ export default function Home() {
           <div className="absolute inset-0 flex flex-col items-center justify-center z-50 gap-2">
             <button
               onClick={handleReset}
-              className="text-white font-semibold shadow-2xl"
+              className="text-white font-semibold"
               style={{ 
-                backgroundColor: '#ff6b35',
+                backgroundColor: '#EBA684',
                 borderRadius: '50px',
                 fontFamily: 'Fraunces, serif',
                 fontWeight: 900,
@@ -188,7 +188,7 @@ export default function Home() {
             >
               Reset
             </button>
-            <span className="text-sm notification-text">to explore more!</span>
+            <span className="text-xs" style={{ color: '#8B7355' }}>to explore more!</span>
           </div>
         )}
       </div>
