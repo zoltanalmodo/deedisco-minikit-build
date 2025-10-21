@@ -111,38 +111,10 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
 
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-[101] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-neutral-900 p-6 text-white shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95">
-          <Dialog.Title className="text-lg font-semibold">Mint NFTs</Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm text-neutral-300">
-            You are about to mint 3 randomly selected parts. Choose your wallet to continue.
-          </Dialog.Description>
-
-          {/* Wallet selector */}
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <WalletCard
-              id="warpcast"
-              label="Warpcast Wallet"
-              desc="Farcaster's native wallet"
-              icon="warpcast"
-              selected={walletType === "warpcast"}
-              onSelect={() => setWalletType("warpcast")}
-            />
-            <WalletCard
-              id="coinbase"
-              label="Coinbase Wallet"
-              desc="Popular crypto wallet"
-              icon="coinbase"
-              selected={walletType === "coinbase"}
-              onSelect={() => setWalletType("coinbase")}
-            />
-          </div>
-
-          {/* Locked random selection (no shuffle button) */}
-          <div className="mt-6 space-y-2">
-            <h3 className="text-sm font-medium">
-              {showOnlySelected ? "Selected Pack" : "the 3 random parts"}
-            </h3>
-            <div className={`grid gap-2 ${showOnlySelected ? "grid-cols-1" : "grid-cols-3"}`}>
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-[101] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/20 bg-white/95 backdrop-blur-md p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95">
+          {/* Selected Pack Image - moved to top */}
+          <div className="flex justify-center mb-4">
+            <div className={`grid gap-2 ${showOnlySelected ? "" : "grid-cols-3"}`}>
               {(pack.length ? pack : new Array(showOnlySelected ? 1 : 3).fill(null)).map((img, i) => {
                 // If showOnlySelected is true, only show the first item (top)
                 if (showOnlySelected && i > 0) return null;
@@ -150,7 +122,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                 return (
                   <div
                     key={i}
-                    className={`relative h-20 overflow-hidden rounded-md border border-white/10 ${
+                    className={`relative ${showOnlySelected ? "aspect-square w-48" : "h-20"} overflow-hidden rounded-lg border border-white/20 ${
                       img ? "" : "animate-pulse bg-white/10"
                     }`}
                   >
@@ -160,7 +132,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                         alt={img.alt}
                         fill
                         className="object-cover"
-                        sizes="80px"
+                        sizes={showOnlySelected ? "192px" : "80px"}
                         priority={i < 3}
                       />
                     )}
@@ -170,12 +142,51 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
             </div>
           </div>
 
+          <Dialog.Description className="text-base text-center mb-4" style={{ color: '#131212' }}>
+            Choose your wallet
+          </Dialog.Description>
+
+          {/* Wallet selector */}
+          <div className="grid grid-cols-2 gap-3">
+            <WalletCard
+              id="warpcast"
+              label="Option 1"
+              desc="Warpcast Wallet"
+              icon="warpcast"
+              selected={walletType === "warpcast"}
+              onSelect={() => setWalletType("warpcast")}
+            />
+            <WalletCard
+              id="coinbase"
+              label="Option 2"
+              desc="Coinbase Wallet"
+              icon="coinbase"
+              selected={walletType === "coinbase"}
+              onSelect={() => setWalletType("coinbase")}
+            />
+          </div>
+
+
           {/* Actions */}
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="mt-6 flex justify-between gap-3">
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md border border-white/15 bg-transparent px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10"
+                className="inline-flex items-center justify-center text-sm font-semibold"
+                style={{ 
+                  backgroundColor: 'transparent',
+                  borderRadius: '50px',
+                  fontFamily: 'Fraunces, serif',
+                  fontWeight: 900,
+                  paddingTop: '16px',
+                  paddingBottom: '16px',
+                  paddingLeft: '32px',
+                  paddingRight: '32px',
+                  border: '2px solid #3B82F6',
+                  color: '#3B82F6'
+                }}
+                onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
+                onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
               >
                 Cancel
               </button>
@@ -187,7 +198,7 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
               disabled={isMinting || pack.length !== 3}
               className="inline-flex items-center justify-center text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
               style={{ 
-                backgroundColor: '#131312',
+                backgroundColor: '#131212',
                 borderRadius: '50px', // Capsule shape - half the height
                 fontFamily: 'Fraunces, serif',
                 fontWeight: 900,
@@ -202,10 +213,10 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
               {isMinting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Minting...
+                  Buying...
                 </>
               ) : (
-                "Mint NFTs"
+                "Buy Pack"
               )}
             </button>
           </div>
@@ -228,28 +239,28 @@ function WalletCard(props: {
     <label
       htmlFor={id}
       className={[
-        "group block cursor-pointer rounded-xl border p-4 transition-colors",
-        selected ? "border-purple-500 bg-purple-500/10" : "border-white/15 hover:bg-white/5",
+        "group block cursor-pointer rounded-lg border p-3 transition-colors",
+        selected ? "border-blue-400 bg-blue-100" : "border-gray-300 hover:bg-gray-50",
       ].join(" ")}
       onClick={onSelect}
     >
       <input id={id} type="radio" name="wallet" className="sr-only" checked={selected} readOnly />
-      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/10">
+      <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
         {icon === "warpcast" ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
           </svg>
         ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
             <circle cx="12" cy="12" r="9" />
             <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
             <path d="M12 18V6" />
           </svg>
         )}
       </div>
-      <div className="text-sm">
-        <p className="font-medium">{label}</p>
-        <p className="text-xs text-neutral-400">{desc}</p>
+      <div className="text-xs">
+        <p className="font-semibold text-sm" style={{ color: '#131212' }}>{label}</p>
+        <p className="text-xs mt-1" style={{ color: '#666' }}>{desc}</p>
       </div>
     </label>
   );
