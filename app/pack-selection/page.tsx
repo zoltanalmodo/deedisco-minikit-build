@@ -70,21 +70,7 @@ export default function PackSelection() {
       {/* Buy Button - Links to existing wallet popup */}
       <div className="flex justify-center w-full">
         <MintButton
-          randomFrom={{
-            top: [packData[selectedPack]], // Selected pack
-            mid: [{ id: 0, src: "", alt: "Pack" }], // Dummy data
-            bot: [{ id: 0, src: "", alt: "Pack" }], // Dummy data
-          }}
-          onMint={async ({ pack, wallet }) => {
-            // Handle pack purchase here
-            console.log("Purchasing pack", {
-              requestedPack: pack,
-              selectedPack: packData[selectedPack],
-              wallet,
-            })
-          }}
           customButtonText={`Buy ${packData[selectedPack]?.name}`}
-          showOnlySelected={true}
         />
       </div>
 
