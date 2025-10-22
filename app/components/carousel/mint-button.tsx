@@ -182,9 +182,6 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                     className="rounded-lg shadow-lg"
                     priority
                   />
-                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-4 py-1.5 rounded-full shadow-md border border-gray-200">
-                    <span className="text-xs font-semibold text-gray-800">3 CARDS PACK</span>
-                  </div>
                 </div>
               </div>
 
