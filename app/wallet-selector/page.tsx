@@ -117,7 +117,7 @@ export default function WalletSelector() {
                 className="w-6 h-6"
               />
             </div>
-            <span className="text-base font-semibold text-gray-800">Coinbase Wallet</span>
+            <span className="text-base font-semibold text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>Coinbase Wallet</span>
           </div>
         </button>
 
@@ -142,7 +142,7 @@ export default function WalletSelector() {
                 className="w-6 h-6"
               />
             </div>
-            <span className="text-base font-semibold text-gray-800">Warpcast Wallet</span>
+            <span className="text-base font-semibold text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>Farcaster / Warpcast Wallet</span>
           </div>
         </button>
 
@@ -167,7 +167,7 @@ export default function WalletSelector() {
                 className="w-6 h-6"
               />
             </div>
-            <span className="text-base font-semibold text-gray-800">MetaMask Wallet</span>
+            <span className="text-base font-semibold text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>MetaMask Wallet</span>
           </div>
         </button>
       </div>
