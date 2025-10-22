@@ -148,16 +148,16 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
       <div className="flex flex-col items-center justify-center gap-4">
         <button
           onClick={() => setOpen(true)}
-          className="text-white font-semibold shadow-lg transition-colors text-base sm:text-lg"
+          className="text-white font-semibold shadow-lg transition-colors text-sm sm:text-base"
           style={{
             backgroundColor: '#131312',
             borderRadius: '50px',
             fontFamily: 'Fraunces, serif',
             fontWeight: 900,
-            paddingTop: '20px',
-            paddingBottom: '20px',
-            paddingLeft: '40px',
-            paddingRight: '40px',
+            paddingTop: '18px',
+            paddingBottom: '18px',
+            paddingLeft: '36px',
+            paddingRight: '36px',
           }}
           onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
           onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
