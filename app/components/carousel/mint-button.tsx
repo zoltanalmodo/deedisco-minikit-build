@@ -23,7 +23,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
   const { disconnect } = useDisconnect();
   
   // Detect environment
-  const isDev = process.env.NODE_ENV === 'development';
+  // Removed dual-mode logic - use consistent UI everywhere
   const [isMiniApp, setIsMiniApp] = useState(false);
   
   // Detect if running in Farcaster Mini App
@@ -57,7 +57,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
       if (isMiniApp) {
         // Auto-connect to Farcaster wallet in Mini App
         connect({ connector: connectors[0] });
-      } else if (isDev && walletType) {
+      } else if (walletType) {
         // Auto-connect to selected wallet in dev mode
         const targetConnector = connectors.find(c => {
           if (walletType === 'coinbase') return c.name.toLowerCase().includes('coinbase');
@@ -69,7 +69,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
         }
       }
     }
-  }, [open, isConnected, connectors, connect, isMiniApp, isDev, walletType]);
+  }, [open, isConnected, connectors, connect, isMiniApp, walletType]);
 
   // Handle minting
   const handleMint = async () => {
@@ -200,13 +200,13 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                 )}
               </div>
 
-              {/* Dev Mode Wallet Selector */}
-              {isDev && !isMiniApp && !isConnected && (
+              {/* Wallet Selector - Always show */}
+              {!isMiniApp && !isConnected && (
                 <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
                   <div className="flex items-center mb-3">
-                    <span className="text-sm font-semibold text-yellow-800">🔧 Development Mode</span>
+                    <span className="text-sm font-semibold text-yellow-800">🔧 Wallet Selection</span>
                   </div>
-                  <p className="text-xs text-yellow-700 mb-3">Select a wallet for testing:</p>
+                  <p className="text-xs text-yellow-700 mb-3">Select a wallet to continue:</p>
                   
                   <div className="space-y-2">
                     {/* Coinbase Wallet */}
@@ -257,7 +257,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                     Pack Price: FREE (Gas only)
                   </div>
                   <div className="text-xs text-gray-600">
-                    {isMiniApp ? '🎯 Farcaster Wallet' : isDev ? '🔧 Dev Mode - Base Sepolia' : 'Base Sepolia Testnet'}
+                    {isMiniApp ? '🎯 Farcaster Wallet' : 'Base Sepolia Testnet'}
                   </div>
                 </div>
               </div>
@@ -296,7 +296,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                 
                 <button
                   onClick={handleMint}
-                  disabled={isLoading || !isConnected || (isDev && !isMiniApp && !walletType)}
+                  disabled={isLoading || !isConnected || (!isMiniApp && !walletType)}
                   className="flex-1 inline-flex items-center justify-center text-base font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
                   style={{
                     borderRadius: '50px',
