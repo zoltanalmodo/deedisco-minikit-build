@@ -57,145 +57,164 @@ export default function WalletSelector() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 w-full max-w-md shadow-2xl border border-white/20">
-        {/* Pack Image Section */}
-        <div className="flex justify-center mb-6">
-          <div className="relative">
-            <Image
-              src="/pack-all-random.png"
-              alt="3 CARDS PACK"
-              width={192}
-              height={192}
-              className="rounded-lg shadow-lg"
-              priority
-            />
+    <main
+      className="flex flex-col items-center w-full max-w-md mx-auto px-2 py-1 bg-white text-black"
+      style={{ minHeight: "100vh", overflowY: "auto" }}
+    >
+      <header className="text-center mb-1 pt-1 pb-1">
+        <h1 className="text-2xl sm:text-2xl font-bold mb-1">
+          Choose your wallet
+        </h1>
+      </header>
+
+      {/* Pack Image - NO frame, NO shadow, just the image */}
+      <div className="w-full mb-4 flex justify-center">
+        <Image
+          src="/pack-all-random.png"
+          alt="3 CARDS PACK"
+          width={192}
+          height={192}
+          className="w-48 h-48 object-contain"
+          priority
+        />
+      </div>
+
+      {/* Use Real Contract Checkbox */}
+      <div className="w-full mb-4">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={useRealContract}
+            onChange={(e) => setUseRealContract(e.target.checked)}
+            className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <span className="text-sm text-gray-700">
+            Use Real Contract (requires wallet connection)
+          </span>
+        </label>
+      </div>
+
+      {/* Wallet Selection Buttons */}
+      <div className="w-full space-y-3 mb-4">
+        {/* Coinbase Wallet */}
+        <button
+          onClick={() => handleWalletConnect('coinbase')}
+          disabled={isLoading}
+          className={`w-full p-4 rounded-lg border-2 transition-all ${
+            walletType === 'coinbase'
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-blue-300 bg-white'
+          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <div className="flex items-center">
+            <div className="w-8 h-8 mr-3 flex items-center justify-center bg-blue-100 rounded-full">
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+              </svg>
+            </div>
+            <span className="text-base font-semibold text-gray-800">Coinbase Wallet</span>
           </div>
-        </div>
+        </button>
 
-        {/* Choose your wallet Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Choose your wallet
-          </h1>
-        </div>
+        {/* Warpcast Wallet */}
+        <button
+          onClick={() => handleWalletConnect('warpcast')}
+          disabled={isLoading}
+          className={`w-full p-4 rounded-lg border-2 transition-all ${
+            walletType === 'warpcast'
+              ? 'border-purple-500 bg-purple-50'
+              : 'border-gray-300 hover:border-purple-300 bg-white'
+          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <div className="flex items-center">
+            <div className="w-8 h-8 mr-3 flex items-center justify-center bg-purple-100 rounded-full">
+              <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              </svg>
+            </div>
+            <span className="text-base font-semibold text-gray-800">Warpcast Wallet</span>
+          </div>
+        </button>
 
-        {/* Use Real Contract Checkbox */}
-        <div className="mb-6">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={useRealContract}
-              onChange={(e) => setUseRealContract(e.target.checked)}
-              className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <span className="text-sm text-gray-700">
-              Use Real Contract (requires wallet connection)
-            </span>
-          </label>
-        </div>
+        {/* MetaMask Wallet */}
+        <button
+          onClick={() => handleWalletConnect('metamask')}
+          disabled={isLoading}
+          className={`w-full p-4 rounded-lg border-2 transition-all ${
+            walletType === 'metamask'
+              ? 'border-orange-500 bg-orange-50'
+              : 'border-gray-300 hover:border-orange-300 bg-white'
+          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <div className="flex items-center">
+            <div className="w-8 h-8 mr-3 flex items-center justify-center bg-orange-100 rounded-full">
+              <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              </svg>
+            </div>
+            <span className="text-base font-semibold text-gray-800">MetaMask Wallet</span>
+          </div>
+        </button>
+      </div>
 
-        {/* Pack Price Information */}
-        <div className="text-center mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
-          <div className="text-lg font-bold text-gray-800 mb-1">
+      {/* Price Panel */}
+      <div className="w-full mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+        <div className="text-center">
+          <div className="text-sm font-semibold text-gray-800 mb-1">
             Pack Price: {useRealContract ? '0.001 ETH' : 'FREE (Gas only)'}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-xs text-gray-600">
             {useRealContract ? 'Real payment required' : 'Mock payment (testing)'}
           </div>
         </div>
+      </div>
 
-        {/* Wallet Selection Buttons */}
-        <div className="space-y-3 mb-6">
-          {/* Coinbase Wallet */}
+      {/* Action Buttons - SAME STYLING AS PACK SELECTOR PAGE */}
+      <div className="flex justify-center w-full mt-4">
+        <Link href="/pack-selection">
           <button
-            onClick={() => handleWalletConnect('coinbase')}
-            disabled={isLoading}
-            className={`w-full p-4 rounded-lg border-2 transition-all ${
-              walletType === 'coinbase'
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-gray-300 hover:border-blue-300 bg-white'
-            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="flex items-center">
-              <div className="w-8 h-8 mr-3 flex items-center justify-center bg-blue-100 rounded-full">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" />
-                </svg>
-              </div>
-              <span className="text-base font-semibold text-gray-800">Coinbase Wallet</span>
-            </div>
-          </button>
-
-          {/* Warpcast Wallet */}
-          <button
-            onClick={() => handleWalletConnect('warpcast')}
-            disabled={isLoading}
-            className={`w-full p-4 rounded-lg border-2 transition-all ${
-              walletType === 'warpcast'
-                ? 'border-purple-500 bg-purple-50'
-                : 'border-gray-300 hover:border-purple-300 bg-white'
-            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="flex items-center">
-              <div className="w-8 h-8 mr-3 flex items-center justify-center bg-purple-100 rounded-full">
-                <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                </svg>
-              </div>
-              <span className="text-base font-semibold text-gray-800">Warpcast Wallet</span>
-            </div>
-          </button>
-
-          {/* MetaMask Wallet */}
-          <button
-            onClick={() => handleWalletConnect('metamask')}
-            disabled={isLoading}
-            className={`w-full p-4 rounded-lg border-2 transition-all ${
-              walletType === 'metamask'
-                ? 'border-orange-500 bg-orange-50'
-                : 'border-gray-300 hover:border-orange-300 bg-white'
-            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <div className="flex items-center">
-              <div className="w-8 h-8 mr-3 flex items-center justify-center bg-orange-100 rounded-full">
-                <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                </svg>
-              </div>
-              <span className="text-base font-semibold text-gray-800">MetaMask Wallet</span>
-            </div>
-          </button>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Link href="/pack-selection" className="flex-1">
-            <button
-              className="w-full inline-flex items-center justify-center text-base font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
-              style={{
-                borderRadius: '50px',
-                paddingTop: '12px',
-                paddingBottom: '12px',
-              }}
-            >
-              Cancel
-            </button>
-          </Link>
-          
-          <button
-            onClick={handleMint}
-            disabled={!isConnected || isLoading}
-            className="flex-1 inline-flex items-center justify-center text-base font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
-            style={{
-              borderRadius: '50px',
+            type="button"
+            className="font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: 'transparent',
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
               paddingTop: '12px',
               paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px',
+              border: '2px solid #8FC5FF',
+              color: '#8FC5FF'
             }}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(143, 197, 255, 0.1)'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
           >
-            {isLoading ? 'Connecting...' : 'Buy Pack'}
+            Cancel
           </button>
-        </div>
+        </Link>
+      </div>
+
+      <div className="flex justify-center w-full mt-2">
+        <button
+          onClick={handleMint}
+          disabled={!isConnected || isLoading}
+          className="text-white font-bold transition-colors text-base"
+          style={{ 
+            backgroundColor: '#000000',
+            borderRadius: '25px',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            fontWeight: 700,
+            paddingTop: '12px',
+            paddingBottom: '12px',
+            paddingLeft: '24px',
+            paddingRight: '24px'
+          }}
+          onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
+          onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
+        >
+          {isLoading ? 'Connecting...' : 'Buy Pack'}
+        </button>
       </div>
     </main>
   );
