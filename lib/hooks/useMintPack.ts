@@ -40,7 +40,7 @@ export function useMintPack() {
         args: [address, BigInt(config.cardsPerPack)],
       });
       
-      await writeContract({
+      writeContract({
         address: nftContractConfig.address,
         abi: nftContractConfig.abi,
         functionName: 'mintPack',

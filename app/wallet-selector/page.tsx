@@ -10,6 +10,8 @@ export default function WalletSelector() {
   const [walletType, setWalletType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [useRealContract, setUseRealContract] = useState(false);
+  const [mintingState, setMintingState] = useState<'idle' | 'minting' | 'confirming' | 'success' | 'error'>('idle');
+  const [mintResult, setMintResult] = useState<any>(null);
   
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
@@ -58,34 +60,133 @@ export default function WalletSelector() {
     if (useRealContract) {
       // REAL CONTRACT MINTING
       console.log('🔥 REAL CONTRACT MINTING - This will use the actual blockchain!');
+      setMintingState('minting');
       
       try {
         const result = await mintPack();
         if (result.success) {
           console.log('✅ REAL MINTING SUCCESSFUL:', result);
-          alert(`REAL NFTs minted successfully! Transaction: ${result.transactionHash}`);
+          setMintingState('success');
+          setMintResult(result);
         } else {
           console.error('❌ REAL MINTING FAILED:', result.error);
-          alert(`REAL minting failed: ${result.error}`);
+          setMintingState('error');
+          setMintResult({ error: result.error });
         }
       } catch (error) {
         console.error('❌ REAL MINTING ERROR:', error);
-        alert(`REAL minting error: ${error}`);
+        setMintingState('error');
+        setMintResult({ error: error });
       }
     } else {
       // MOCK MINTING
-      const mockTransaction = {
-        hash: '0x' + Math.random().toString(16).substr(2, 64),
-        status: 'Success',
-        payment: 'Mock payment (testing)',
-        nftsMinted: '3 random cards',
-        tokenIds: '1, 2, 3'
-      };
+      setMintingState('minting');
       
-      console.log('✅ Mock minting successful:', mockTransaction);
-      alert('Mock NFTs minted successfully! Check console for details.');
+      // Simulate minting delay
+      setTimeout(() => {
+        const mockTransaction = {
+          hash: '0x' + Math.random().toString(16).substr(2, 64),
+          status: 'Success',
+          payment: 'Mock payment (testing)',
+          nftsMinted: '3 random cards',
+          tokenIds: '1, 2, 3'
+        };
+        
+        console.log('✅ Mock minting successful:', mockTransaction);
+        setMintingState('success');
+        setMintResult(mockTransaction);
+      }, 2000);
     }
   };
+
+  // Show confirmation page after successful minting
+  if (mintingState === 'success') {
+    return (
+      <main
+        className="flex flex-col items-center w-full max-w-md mx-auto px-8 py-4 bg-white text-black"
+        style={{ minHeight: "100vh", overflowY: "auto" }}
+      >
+        <header className="text-center mb-6 pt-1 pb-1">
+          <h1 className="text-2xl sm:text-2xl font-bold mb-1 text-green-600">
+            ✅ NFTs Minted Successfully!
+          </h1>
+        </header>
+
+        {/* Pack Image */}
+        <div className="w-full mb-6 flex justify-center">
+          <Image
+            src="/pack-all-random.png"
+            alt="3 CARDS PACK"
+            width={192}
+            height={192}
+            className="w-48 h-48 object-contain"
+            priority
+          />
+        </div>
+
+        {/* Transaction Details */}
+        <div className="w-full mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+          <div className="text-center">
+            <div className="text-lg font-semibold text-green-800 mb-2">
+              Your NFTs are now in your wallet!
+            </div>
+            <div className="text-sm text-green-700 mb-1">
+              Transaction: {mintResult?.transactionHash || mintResult?.hash || 'N/A'}
+            </div>
+            <div className="text-sm text-green-700 mb-1">
+              NFTs: {mintResult?.nftsMinted || '3 random cards'}
+            </div>
+            <div className="text-sm text-green-700">
+              Payment: {mintResult?.payment || 'Completed'}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between w-full gap-3">
+          <button
+            onClick={() => {
+              setMintingState('idle');
+              setMintResult(null);
+            }}
+            className="font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: 'transparent',
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px',
+              border: '2px solid #8FC5FF',
+              color: '#8FC5FF'
+            }}
+          >
+            Mint More
+          </button>
+          
+          <Link href="/pack-selection">
+            <button
+              className="text-white font-bold transition-colors text-base"
+              style={{ 
+                backgroundColor: '#000000',
+                borderRadius: '25px',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontWeight: 700,
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                paddingLeft: '24px',
+                paddingRight: '24px'
+              }}
+            >
+              Back to Packs
+            </button>
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main
@@ -258,7 +359,7 @@ export default function WalletSelector() {
             onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
             onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
           >
-            {isLoading ? 'Connecting...' : isMinting ? 'Minting...' : 'Buy Pack'}
+            {isLoading ? 'Connecting...' : mintingState === 'minting' ? 'Minting NFTs - confirm wallet request...' : 'Buy Pack'}
           </button>
         ) : walletType ? (
           <button
