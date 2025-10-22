@@ -19,7 +19,7 @@ interface MintButtonProps {
 export default function MintButton({ customButtonText }: MintButtonProps) {
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   
   // Detect environment
