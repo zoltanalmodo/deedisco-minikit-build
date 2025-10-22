@@ -209,25 +209,45 @@ export default function WalletSelector() {
           </button>
         </Link>
         
-        <button
-          onClick={handleMint}
-          disabled={!isConnected || isLoading}
-          className="text-white font-bold transition-colors text-base"
-          style={{ 
-            backgroundColor: '#000000',
-            borderRadius: '25px',
-            fontFamily: 'system-ui, -apple-system, sans-serif',
-            fontWeight: 700,
-            paddingTop: '12px',
-            paddingBottom: '12px',
-            paddingLeft: '24px',
-            paddingRight: '24px'
-          }}
-          onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
-          onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
-        >
-          {isLoading ? 'Connecting...' : 'Buy Pack'}
-        </button>
+        {isConnected ? (
+          <button
+            onClick={handleMint}
+            disabled={isLoading}
+            className="text-white font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: '#000000',
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
+          >
+            {isLoading ? 'Connecting...' : 'Buy Pack'}
+          </button>
+        ) : (
+          <button
+            disabled
+            className="font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: '#8FC5FF',
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px',
+              color: '#FFFFFF'
+            }}
+          >
+            Connect Wallet
+          </button>
+        )}
       </div>
     </main>
   );
