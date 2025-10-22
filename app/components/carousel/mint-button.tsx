@@ -148,7 +148,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
       <div className="flex flex-col items-center justify-center gap-4">
         <button
           onClick={() => setOpen(true)}
-          className="text-white font-bold transition-colors text-sm"
+          className="text-white font-bold transition-colors text-base"
           style={{
             backgroundColor: '#000000',
             borderRadius: '25px',

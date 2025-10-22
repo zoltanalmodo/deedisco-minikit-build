@@ -205,7 +205,7 @@ export default function Home() {
         <Link href="/pack-selection">
           <button
             type="button"
-            className="text-white font-bold transition-colors text-sm"
+            className="text-white font-bold transition-colors text-base"
             style={{ 
               backgroundColor: '#000000',
               borderRadius: '25px',

@@ -86,7 +86,7 @@ export default function PackSelection() {
         <Link href="/">
           <button
             type="button"
-            className="font-bold transition-colors text-sm"
+            className="font-bold transition-colors text-base"
             style={{ 
               backgroundColor: 'transparent',
               borderRadius: '25px',
