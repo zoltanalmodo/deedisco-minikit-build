@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import PackCarousel from "@/app/components/carousel/pack-carousel"
-import MintButton from "@/app/components/carousel/mint-button"
+// import MintButton from "@/app/components/carousel/mint-button"
 import Link from "next/link"
 
 // Pack data - 4 pack options as requested

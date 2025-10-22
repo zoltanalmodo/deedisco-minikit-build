@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
@@ -12,7 +12,7 @@ export default function WalletSelector() {
   
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
+  const { } = useDisconnect();
 
   // Handle wallet connection
   const handleWalletConnect = async (wallet: string) => {
