@@ -202,7 +202,7 @@ export default function Home() {
       </div>
 
       <div className="mt-4 mb-1 flex justify-center w-full">
-        <Link href="/pack-selection">
+        <Link href="/wallet-selector">
           <button
             type="button"
             className="text-white font-bold transition-colors text-base"
@@ -217,7 +217,7 @@ export default function Home() {
               paddingRight: '24px'
             }}
             onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
-            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
           >
             Buy a 3-card pack
           </button>

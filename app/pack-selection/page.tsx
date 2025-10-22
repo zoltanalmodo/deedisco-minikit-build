@@ -67,11 +67,28 @@ export default function PackSelection() {
         />
       </div>
 
-      {/* Buy Button - Links to existing wallet popup */}
+      {/* Buy Button - Links to wallet selector page */}
       <div className="flex justify-center w-full">
-        <MintButton
-          customButtonText={`Buy ${packData[selectedPack]?.name}`}
-        />
+        <Link href="/wallet-selector">
+          <button
+            type="button"
+            className="text-white font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: '#000000',
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
+          >
+            Buy {packData[selectedPack]?.name}
+          </button>
+        </Link>
       </div>
 
       {/* Pack Description */}
