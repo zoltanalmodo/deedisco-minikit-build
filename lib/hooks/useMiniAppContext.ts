@@ -19,6 +19,7 @@ export function useMiniAppContext(): MiniAppContext {
 
         // Check if we're in a Mini App context
         // Method 1: Check for Farcaster Mini App SDK
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof window !== 'undefined' && (window as any).farcaster) {
           setIsMiniApp(true);
           return;
@@ -37,6 +38,7 @@ export function useMiniAppContext(): MiniAppContext {
         }
 
         // Method 3: Check for Mini App specific environment variables or context
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof window !== 'undefined' && (window as any).__FARCASTER_MINI_APP__) {
           setIsMiniApp(true);
           return;
