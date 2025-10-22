@@ -14,16 +14,26 @@ export default function WalletSelector() {
   const { connect, connectors } = useConnect();
   const { } = useDisconnect();
 
-  // Handle wallet connection
-  const handleWalletConnect = async (wallet: string) => {
+  // Handle wallet selection (NOT connection)
+  const handleWalletSelect = (wallet: string) => {
     setWalletType(wallet);
+    console.log('🎯 Wallet selected:', wallet);
+  };
+
+  // Handle actual wallet connection
+  const handleWalletConnect = async () => {
+    if (!walletType) {
+      alert('Please select a wallet first');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const targetConnector = connectors.find(c => {
-        if (wallet === 'coinbase') return c.name.toLowerCase().includes('coinbase');
-        if (wallet === 'metamask') return c.name.toLowerCase().includes('metamask');
-        if (wallet === 'warpcast') return c.name.toLowerCase().includes('warpcast');
+        if (walletType === 'coinbase') return c.name.toLowerCase().includes('coinbase');
+        if (walletType === 'metamask') return c.name.toLowerCase().includes('metamask');
+        if (walletType === 'warpcast') return c.name.toLowerCase().includes('warpcast');
         return false;
       });
 
@@ -98,7 +108,7 @@ export default function WalletSelector() {
       <div className="w-full space-y-3 mb-3">
         {/* Coinbase Wallet */}
         <button
-          onClick={() => handleWalletConnect('coinbase')}
+          onClick={() => handleWalletSelect('coinbase')}
           disabled={isLoading}
           className={`w-full p-3 border-2 transition-all ${
             walletType === 'coinbase'
@@ -123,7 +133,7 @@ export default function WalletSelector() {
 
         {/* Warpcast Wallet */}
         <button
-          onClick={() => handleWalletConnect('warpcast')}
+          onClick={() => handleWalletSelect('warpcast')}
           disabled={isLoading}
           className={`w-full p-3 border-2 transition-all ${
             walletType === 'warpcast'
@@ -148,7 +158,7 @@ export default function WalletSelector() {
 
         {/* MetaMask Wallet */}
         <button
-          onClick={() => handleWalletConnect('metamask')}
+          onClick={() => handleWalletSelect('metamask')}
           disabled={isLoading}
           className={`w-full p-3 border-2 transition-all ${
             walletType === 'metamask'
@@ -229,12 +239,32 @@ export default function WalletSelector() {
           >
             {isLoading ? 'Connecting...' : 'Buy Pack'}
           </button>
+        ) : walletType ? (
+          <button
+            onClick={handleWalletConnect}
+            disabled={isLoading}
+            className="text-white font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: '#2563EB', // Darker blue for better contrast
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#1D4ED8'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#2563EB'}
+          >
+            {isLoading ? 'Connecting...' : 'Connect Wallet'}
+          </button>
         ) : (
           <button
             disabled
             className="font-bold transition-colors text-base"
             style={{ 
-              backgroundColor: '#8FC5FF',
+              backgroundColor: '#9CA3AF', // Disabled gray
               borderRadius: '25px',
               fontFamily: 'system-ui, -apple-system, sans-serif',
               fontWeight: 700,
@@ -245,7 +275,7 @@ export default function WalletSelector() {
               color: '#FFFFFF'
             }}
           >
-            Connect Wallet
+            Select Wallet First
           </button>
         )}
       </div>
