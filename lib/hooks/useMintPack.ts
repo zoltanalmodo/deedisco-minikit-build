@@ -37,14 +37,14 @@ export function useMintPack() {
       console.log('🔄 Calling writeContract with:', {
         address: nftContractConfig.address,
         functionName: 'mintPack',
-        args: [address, config.cardsPerPack],
+        args: [address, BigInt(config.cardsPerPack)],
       });
       
       const txHash = await writeContract({
         address: nftContractConfig.address,
         abi: nftContractConfig.abi,
         functionName: 'mintPack',
-        args: [address, config.cardsPerPack],
+        args: [address, BigInt(config.cardsPerPack)],
       });
 
       console.log('✅ Transaction submitted! Hash:', txHash);
