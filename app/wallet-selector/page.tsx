@@ -95,7 +95,7 @@ export default function WalletSelector() {
       </div>
 
       {/* Wallet Selection Buttons */}
-      <div className="w-full space-y-3 mb-4">
+      <div className="w-full space-y-3 mb-3">
         {/* Coinbase Wallet */}
         <button
           onClick={() => handleWalletConnect('coinbase')}
