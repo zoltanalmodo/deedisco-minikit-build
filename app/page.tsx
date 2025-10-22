@@ -202,7 +202,7 @@ export default function Home() {
       </div>
 
       <div className="mt-4 mb-1 flex justify-center w-full">
-        <Link href="/wallet-selector">
+        <Link href="/pack-selection">
           <button
             type="button"
             className="text-white font-bold transition-colors text-base"
