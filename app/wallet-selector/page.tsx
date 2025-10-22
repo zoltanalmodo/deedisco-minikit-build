@@ -185,7 +185,7 @@ export default function WalletSelector() {
       </div>
 
       {/* Action Buttons - SIDE BY SIDE */}
-      <div className="flex justify-between w-full mt-4 gap-3">
+      <div className="flex justify-between w-full mt-3 gap-3">
         <Link href="/pack-selection">
           <button
             type="button"
