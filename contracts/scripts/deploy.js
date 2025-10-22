@@ -1,19 +1,19 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying DeediscoMinikit contract...");
+  console.log("Deploying DeediscoMinikit contract to BASE Sepolia testnet...");
   
   // Get the contract factory
-  const DeediscoMinikit = await ethers.getContractFactory("DeediscoMinikit");
+  const DeediscoMinikit = await hre.ethers.getContractFactory("DeediscoMinikit");
   
   // Deploy the contract
   const baseURI = "https://ipfs.io/ipfs/QmYourMetadataHash/"; // Update with actual IPFS hash
   const deediscoMinikit = await DeediscoMinikit.deploy(baseURI);
   
   // Wait for deployment
-  await deediscoMinikit.waitForDeployment();
+  await deediscoMinikit.deployed();
   
-  const contractAddress = await deediscoMinikit.getAddress();
+  const contractAddress = deediscoMinikit.address;
   
   console.log("DeediscoMinikit deployed to:", contractAddress);
   console.log("Base URI:", baseURI);
