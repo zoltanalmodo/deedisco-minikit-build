@@ -19,7 +19,7 @@ export function useMiniAppContext(): MiniAppContext {
 
         // Check if we're in a Mini App context
         // Method 1: Check for Farcaster Mini App SDK
-        if (typeof window !== 'undefined' && (window as Record<string, unknown>).farcaster) {
+        if (typeof window !== 'undefined' && (window as any).farcaster) {
           setIsMiniApp(true);
           return;
         }
@@ -28,8 +28,7 @@ export function useMiniAppContext(): MiniAppContext {
         if (typeof window !== 'undefined') {
           const userAgent = navigator.userAgent.toLowerCase();
           const isWarpcast = userAgent.includes('warpcast') || 
-                           userAgent.includes('farcaster') ||
-                           (window as Record<string, unknown>).location?.hostname?.includes('warpcast');
+                           userAgent.includes('farcaster');
           
           if (isWarpcast) {
             setIsMiniApp(true);
@@ -38,7 +37,7 @@ export function useMiniAppContext(): MiniAppContext {
         }
 
         // Method 3: Check for Mini App specific environment variables or context
-        if (typeof window !== 'undefined' && (window as Record<string, unknown>).__FARCASTER_MINI_APP__) {
+        if (typeof window !== 'undefined' && (window as any).__FARCASTER_MINI_APP__) {
           setIsMiniApp(true);
           return;
         }
