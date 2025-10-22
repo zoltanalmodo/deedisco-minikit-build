@@ -169,8 +169,8 @@ export default function WalletSelector() {
         </div>
       </div>
 
-      {/* Action Buttons - SAME STYLING AS PACK SELECTOR PAGE */}
-      <div className="flex justify-center w-full mt-4">
+      {/* Action Buttons - SIDE BY SIDE */}
+      <div className="flex justify-between w-full mt-4 gap-3">
         <Link href="/pack-selection">
           <button
             type="button"
@@ -193,9 +193,7 @@ export default function WalletSelector() {
             Cancel
           </button>
         </Link>
-      </div>
-
-      <div className="flex justify-center w-full mt-2">
+        
         <button
           onClick={handleMint}
           disabled={!isConnected || isLoading}
