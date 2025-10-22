@@ -58,7 +58,7 @@ export default function WalletSelector() {
 
   return (
     <main
-      className="flex flex-col items-center w-full max-w-md mx-auto px-4 py-4 bg-white text-black"
+      className="flex flex-col items-center w-full max-w-md mx-auto px-8 py-4 bg-white text-black"
       style={{ minHeight: "100vh", overflowY: "auto" }}
     >
       <header className="text-center mb-1 pt-1 pb-1">
