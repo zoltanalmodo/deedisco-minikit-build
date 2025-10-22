@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useMintPack } from "../../lib/hooks/useMintPack";
 
 export default function WalletSelector() {
   const [walletType, setWalletType] = useState<string | null>(null);
@@ -13,6 +14,7 @@ export default function WalletSelector() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { } = useDisconnect();
+  const { mintPack, isLoading: isMinting } = useMintPack();
 
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {
@@ -51,19 +53,38 @@ export default function WalletSelector() {
   const handleMint = async () => {
     if (!isConnected) return;
     
-    console.log('🎯 Minting NFTs - isConnected:', isConnected, 'address:', address);
+    console.log('🎯 Minting NFTs - isConnected:', isConnected, 'address:', address, 'useRealContract:', useRealContract);
     
-    // Mock minting for now
-    const mockTransaction = {
-      hash: '0x' + Math.random().toString(16).substr(2, 64),
-      status: 'Success',
-      payment: useRealContract ? '0.001 ETH' : 'Mock payment (testing)',
-      nftsMinted: '3 random cards',
-      tokenIds: '1, 2, 3'
-    };
-    
-    console.log('✅ Mock minting successful:', mockTransaction);
-    alert('NFTs minted successfully! Check console for details.');
+    if (useRealContract) {
+      // REAL CONTRACT MINTING
+      console.log('🔥 REAL CONTRACT MINTING - This will use the actual blockchain!');
+      
+      try {
+        const result = await mintPack();
+        if (result.success) {
+          console.log('✅ REAL MINTING SUCCESSFUL:', result);
+          alert(`REAL NFTs minted successfully! Transaction: ${result.transactionHash}`);
+        } else {
+          console.error('❌ REAL MINTING FAILED:', result.error);
+          alert(`REAL minting failed: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('❌ REAL MINTING ERROR:', error);
+        alert(`REAL minting error: ${error}`);
+      }
+    } else {
+      // MOCK MINTING
+      const mockTransaction = {
+        hash: '0x' + Math.random().toString(16).substr(2, 64),
+        status: 'Success',
+        payment: 'Mock payment (testing)',
+        nftsMinted: '3 random cards',
+        tokenIds: '1, 2, 3'
+      };
+      
+      console.log('✅ Mock minting successful:', mockTransaction);
+      alert('Mock NFTs minted successfully! Check console for details.');
+    }
   };
 
   return (
@@ -222,7 +243,7 @@ export default function WalletSelector() {
         {isConnected ? (
           <button
             onClick={handleMint}
-            disabled={isLoading}
+            disabled={isLoading || isMinting}
             className="text-white font-bold transition-colors text-base"
             style={{ 
               backgroundColor: '#000000',
@@ -237,7 +258,7 @@ export default function WalletSelector() {
             onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
             onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
           >
-            {isLoading ? 'Connecting...' : 'Buy Pack'}
+            {isLoading ? 'Connecting...' : isMinting ? 'Minting...' : 'Buy Pack'}
           </button>
         ) : walletType ? (
           <button
