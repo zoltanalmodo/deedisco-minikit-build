@@ -86,16 +86,16 @@ export default function PackSelection() {
         <Link href="/">
           <button
             type="button"
-            className="font-semibold transition-colors text-sm sm:text-base"
+            className="font-semibold transition-colors text-base sm:text-lg"
             style={{ 
               backgroundColor: 'transparent',
               borderRadius: '50px',
               fontFamily: 'Fraunces, serif',
               fontWeight: 900,
-              paddingTop: '16px',
-              paddingBottom: '16px',
-              paddingLeft: '32px',
-              paddingRight: '32px',
+              paddingTop: '20px',
+              paddingBottom: '20px',
+              paddingLeft: '40px',
+              paddingRight: '40px',
               border: '2px solid #8FC5FF',
               color: '#8FC5FF'
             }}
