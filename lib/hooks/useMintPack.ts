@@ -40,14 +40,14 @@ export function useMintPack() {
         args: [address, BigInt(config.cardsPerPack)],
       });
       
-      const txHash = await writeContract({
+      await writeContract({
         address: nftContractConfig.address,
         abi: nftContractConfig.abi,
         functionName: 'mintPack',
         args: [address, BigInt(config.cardsPerPack)],
       });
 
-      console.log('✅ Transaction submitted! Hash:', txHash);
+      console.log('✅ Transaction submitted! Hash:', hash);
 
       // Wait for transaction confirmation
       console.log('⏳ Waiting for transaction confirmation...');
@@ -56,7 +56,7 @@ export function useMintPack() {
       // We'll return success immediately but the hook will update when confirmed
       const successResult: MintPackResult = {
         success: true,
-        transactionHash: txHash,
+        transactionHash: hash,
         tokenIds: [1, 2, 3], // Placeholder - will be populated after confirmation
       };
       
