@@ -95,7 +95,7 @@ export default function WalletSelector() {
       </div>
 
       {/* Wallet Selection Buttons */}
-      <div className="w-full space-y-3 mb-4">
+      <div className="w-full space-y-3 mb-3">
         {/* Coinbase Wallet */}
         <button
           onClick={() => handleWalletConnect('coinbase')}
@@ -173,7 +173,7 @@ export default function WalletSelector() {
       </div>
 
       {/* Price Panel */}
-      <div className="w-full mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-gray-300">
+      <div className="w-full mb-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-gray-300">
         <div className="text-center">
           <div className="text-sm font-semibold text-gray-800 mb-1">
             Pack Price: {useRealContract ? '0.001 ETH' : 'FREE (Gas only)'}
