@@ -3,28 +3,19 @@ import { base, baseSepolia } from 'wagmi/chains';
 import { metaMask, coinbaseWallet } from 'wagmi/connectors';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 
-// Use BASE testnet (Sepolia) for development
-const isTestnet = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_TESTNET === 'true';
-const selectedChain = isTestnet ? baseSepolia : base;
+// Always use BASE Sepolia testnet for development
+const selectedChain = baseSepolia;
 
-// Check if we're in a Mini App context
-const isMiniAppContext = typeof window !== 'undefined' && (
-  (window as any).farcaster ||
-  navigator.userAgent.toLowerCase().includes('warpcast') ||
-  navigator.userAgent.toLowerCase().includes('farcaster') ||
-  (window as any).__FARCASTER_MINI_APP__
-);
-
-// Create connectors based on context
-const connectors = isMiniAppContext
-  ? [farcasterMiniApp()] // Mini App: Use Farcaster connector
-  : [
-      metaMask(), // Browser: Use MetaMask
-      coinbaseWallet({ 
-        appName: 'Deedisco Minikit',
-        appLogoUrl: '/logo.png'
-      }) // Browser: Use Coinbase Wallet
-    ];
+// For now, always use browser connectors for testing
+// TODO: Add proper Mini App detection later
+const connectors = [
+  metaMask(), // Browser: Use MetaMask
+  coinbaseWallet({ 
+    appName: 'Deedisco Minikit',
+    appLogoUrl: '/logo.png'
+  }), // Browser: Use Coinbase Wallet
+  farcasterMiniApp() // Also include Farcaster for Mini App support
+];
 
 export const wagmiConfig = createConfig({
   chains: [selectedChain],
@@ -34,4 +25,5 @@ export const wagmiConfig = createConfig({
   },
 });
 
-export { isMiniAppContext };
+// Export isMiniAppContext for compatibility (always false for now)
+export const isMiniAppContext = false;

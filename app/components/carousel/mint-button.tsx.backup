@@ -153,15 +153,6 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
     }
   }, [isConnected, address, walletType]);
 
-  // CRITICAL: Watch for isConnected changes that might close modal
-  useEffect(() => {
-    if (!isConnected && open) {
-      console.log('⚠️ WALLET DISCONNECTED WHILE MODAL IS OPEN!');
-      console.log('⚠️ This might be trying to close the modal!');
-      console.log('⚠️ allowModalClose:', allowModalClose);
-    }
-  }, [isConnected, open, allowModalClose]);
-
   const handleMint = async () => {
     console.log('🎯 Mint attempt - isMiniApp:', isMiniApp, 'isConnected:', isConnected, 'useRealContract:', useRealContract, 'walletType:', walletType, 'isWalletAuthenticated:', isWalletAuthenticated);
     
@@ -259,43 +250,60 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
   };
 
       return (
-        <>
-          {/* Trigger Button */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="text-white font-semibold shadow-lg transition-colors text-sm sm:text-base"
-            style={{ 
-              backgroundColor: '#131312',
-              borderRadius: '50px',
-              fontFamily: 'Fraunces, serif',
-              fontWeight: 900,
-              paddingTop: '16px',
-              paddingBottom: '16px',
-              paddingLeft: '32px',
-              paddingRight: '32px'
-            }}
-            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
-            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
-          >
-            {customButtonText || "Buy a pack of random parts"}
-          </button>
+        <Dialog.Root 
+          open={open} 
+          onOpenChange={(newOpen) => {
+            console.log('📱 onOpenChange called - newOpen:', newOpen, 'forceOpenRef.current:', forceOpenRef.current);
+            
+            // ALWAYS block close if forceOpenRef is true
+            if (forceOpenRef.current) {
+              console.log('🚫 MODAL LOCKED - forceOpenRef is true, ignoring ALL changes');
+              return; // Block everything
+            }
+            
+            // Otherwise, allow normal behavior
+            console.log('✅ Modal change allowed:', newOpen);
+            setOpen(newOpen);
+          }}
+        >
+      <Dialog.Trigger asChild>
+        <button
+          type="button"
+          className="text-white font-semibold shadow-lg transition-colors text-sm sm:text-base"
+          style={{ 
+            backgroundColor: '#131312',
+            borderRadius: '50px', // Capsule shape - half the height
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 900,
+            paddingTop: '16px',
+            paddingBottom: '16px',
+            paddingLeft: '32px',
+            paddingRight: '32px'
+          }}
+          onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
+          onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
+        >
+          {customButtonText || "Buy a pack of random parts"}
+        </button>
+      </Dialog.Trigger>
 
-          {/* Custom Modal - WE CONTROL THIS! */}
-          <CustomModal 
-            open={open} 
-            onClose={() => {
-              console.log('🚪 Modal close requested, allowModalClose:', allowModalClose);
-              if (allowModalClose) {
-                setOpen(false);
-              } else {
-                console.log('🚫 Modal close BLOCKED by allowModalClose flag');
-              }
-            }}
-            allowClose={allowModalClose}
-          >
-            <div className="rounded-2xl border border-white/20 bg-white/95 p-6 shadow-2xl"
->
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0" />
+        <Dialog.Content 
+          className="fixed left-1/2 top-1/2 z-[101] w-[92vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/20 bg-white/95 p-6 shadow-2xl focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95"
+          onEscapeKeyDown={(e) => {
+            if (!allowCloseRef.current) {
+              console.log('🚫 Escape key blocked');
+              e.preventDefault();
+            }
+          }}
+          onPointerDownOutside={(e) => {
+            if (!allowCloseRef.current) {
+              console.log('🚫 Outside click blocked');
+              e.preventDefault();
+            }
+          }}
+        >
           {showConfirmation ? (
             // Confirmation Content
             <>
@@ -309,9 +317,9 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl font-bold text-center mb-2" style={{ color: '#131212' }}>
+              <Dialog.Title className="text-2xl font-bold text-center mb-2" style={{ color: '#131212' }}>
                 {transactionDetails?.isMock ? "NFTs Minted Successfully! (Mock)" : "NFTs Minted Successfully!"}
-              </h2>
+              </Dialog.Title>
 
               {/* Thank you message */}
               <div className="text-center mb-6">
@@ -459,9 +467,9 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                 </div>
               </div>
 
-              <p className="text-base text-center mb-4" style={{ color: '#131212' }}>
+              <Dialog.Description className="text-base text-center mb-4" style={{ color: '#131212' }}>
                 Choose your wallet
-              </p>
+              </Dialog.Description>
 
               {/* Testing Toggle - Only show in browser mode */}
               {!isMiniApp && (
@@ -518,22 +526,41 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
                 </div>
               )}
 
+              {/* Debug Info */}
+              <div className="mb-4 p-2 bg-red-100 rounded text-xs">
+                <div className="text-red-800 font-bold">Debug: isMiniApp={String(isMiniApp)}, isConnected={String(isConnected)}, isWalletAuthenticated={String(isWalletAuthenticated)}, useRealContract={String(useRealContract)}, walletType={String(walletType)}</div>
+                <div className="text-red-600 text-xs mt-1">Address: {address || 'None'}</div>
+                <div className="text-red-600 text-xs mt-1">Should show disconnect button: {String(isConnected)}</div>
+              </div>
 
-              {/* DISCONNECT BUTTON - Closes modal (Option B) */}
+              {/* Disconnect Button - ACTUALLY disconnects wallet */}
               {isConnected && (
                 <div className="mb-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      console.log('🔌 Disconnecting wallet and closing modal');
-                      // Disconnect wallet
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🔌🔒 DISCONNECT - LOCKING MODAL FIRST');
+                      
+                      // LOCK THE MODAL IMMEDIATELY - THIS MUST HAPPEN FIRST!
+                      forceOpenRef.current = true;
+                      console.log('🔒 Modal locked - forceOpenRef.current:', forceOpenRef.current);
+                      
+                      // Disconnect the wallet (this is what triggers the modal to try to close)
                       disconnect();
-                      // Reset UI state
-                      setConnectionStatus('Wallet disconnected');
+                      console.log('✅ Wallet disconnect called');
+                      
+                      // Update UI state
+                      setConnectionStatus('Wallet disconnected - You can now select another wallet');
                       setWalletType(null);
                       setIsWalletAuthenticated(false);
-                      // Close modal
-                      setOpen(false);
+                      
+                      // Release the lock after 5 seconds
+                      setTimeout(() => {
+                        forceOpenRef.current = false;
+                        console.log('🔓 Modal unlocked after 5 seconds');
+                      }, 5000);
                     }}
                     className="w-full inline-flex items-center justify-center text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
                     style={{
@@ -549,30 +576,28 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
 
               {/* Actions */}
               <div className="mt-6 flex justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('❌ Cancel button clicked - closing modal');
-                    setOpen(false);
-                  }}
-                  className="inline-flex items-center justify-center text-sm font-semibold"
-                  style={{ 
-                    backgroundColor: 'transparent',
-                    borderRadius: '50px',
-                    fontFamily: 'Fraunces, serif',
-                    fontWeight: 900,
-                    paddingTop: '16px',
-                    paddingBottom: '16px',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    border: '2px solid #3B82F6',
-                    color: '#3B82F6'
-                  }}
-                  onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
-                  onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
-                >
-                  Cancel
-                </button>
+                <Dialog.Close asChild>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center text-sm font-semibold"
+                    style={{ 
+                      backgroundColor: 'transparent',
+                      borderRadius: '50px',
+                      fontFamily: 'Fraunces, serif',
+                      fontWeight: 900,
+                      paddingTop: '16px',
+                      paddingBottom: '16px',
+                      paddingLeft: '32px',
+                      paddingRight: '32px',
+                      border: '2px solid #3B82F6',
+                      color: '#3B82F6'
+                    }}
+                    onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
+                    onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
+                  >
+                    Cancel
+                  </button>
+                </Dialog.Close>
 
     {(!isMiniApp && useRealContract && !isConnected && !walletType) ? (
       <div className="text-center p-4">
@@ -869,9 +894,9 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
               </div>
             </>
           )}
-            </div>
-          </CustomModal>
-        </>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

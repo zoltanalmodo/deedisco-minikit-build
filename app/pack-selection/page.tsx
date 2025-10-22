@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import PackCarousel from "@/app/components/carousel/pack-carousel"
 import MintButton from "@/app/components/carousel/mint-button"
 import Link from "next/link"
@@ -15,17 +14,9 @@ const packData = [
 ]
 
 export default function PackSelection() {
-  const { setFrameReady, isFrameReady } = useMiniKit()
   const [selectedPack, setSelectedPack] = useState(0)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isFrameReady) {
-        setFrameReady()
-        console.log("Frame ready signal sent via MiniKit")
-      }
-    }, 100)
-
     if (typeof window !== "undefined") {
       const isInIframe = window !== window.parent
       console.log("Is in iframe:", isInIframe)
@@ -34,9 +25,7 @@ export default function PackSelection() {
       window.parent.postMessage({ method: "ready" }, "*")
       console.log("Farcaster SDK ready signal sent (method)")
     }
-
-    return () => clearTimeout(timer)
-  }, [setFrameReady, isFrameReady])
+  }, [])
 
   const handlePackSelect = (packIndex: number) => {
     setSelectedPack(packIndex)

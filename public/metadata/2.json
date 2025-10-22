@@ -1,0 +1,19 @@
+{
+  "name": "Deedisco Card #2",
+  "description": "A unique collectible card from Deedisco Minikit Collection",
+  "image": "https://deedisco-minikit-build.vercel.app/carousel1-image2.jpg",
+  "attributes": [
+    {
+      "trait_type": "Carousel",
+      "value": "1"
+    },
+    {
+      "trait_type": "Position", 
+      "value": "2"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Common"
+    }
+  ]
+}

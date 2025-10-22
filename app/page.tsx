@@ -6,7 +6,6 @@
 
 import { useState, useEffect } from "react"
 import ImageCarousel from "@/app/components/carousel/image-carousel"
-import { useMiniKit } from "@coinbase/onchainkit/minikit"
 import Link from "next/link"
 
 // updated with useMiniKit frameready hook and direct frame ready signals!
@@ -57,16 +56,8 @@ const carouselData: { id: number; images: Img[] }[] = [
 ]
 
 export default function Home() {
-  const { setFrameReady, isFrameReady } = useMiniKit()
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isFrameReady) {
-        setFrameReady()
-        console.log("Frame ready signal sent via MiniKit")
-      }
-    }, 100)
-
     if (typeof window !== "undefined") {
       const isInIframe = window !== window.parent
       console.log("Is in iframe:", isInIframe)
@@ -75,9 +66,7 @@ export default function Home() {
       window.parent.postMessage({ method: "ready" }, "*")
       console.log("Farcaster SDK ready signal sent (method)")
     }
-
-    return () => clearTimeout(timer)
-  }, [setFrameReady, isFrameReady])
+  }, [])
 
   // Preload first pack image for pack selection page
   useEffect(() => {

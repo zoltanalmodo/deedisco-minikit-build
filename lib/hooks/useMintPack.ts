@@ -33,23 +33,37 @@ export function useMintPack() {
     setResult(null);
 
     try {
-      // For now, use mock contract for testing
-      // TODO: Replace with real contract once deployed
-      const mockResult = await mockContract.mintPack(address, config.cardsPerPack);
+      // Use real contract minting - writeContract returns a promise
+      console.log('🔄 Calling writeContract with:', {
+        address: nftContractConfig.address,
+        functionName: 'mintPack',
+        args: [address, config.cardsPerPack],
+      });
       
-      if (mockResult.success) {
-        const successResult: MintPackResult = {
-          success: true,
-          transactionHash: mockResult.transactionHash,
-          tokenIds: mockResult.tokenIds,
-        };
-        
-        setResult(successResult);
-        return successResult;
-      } else {
-        throw new Error('Mock minting failed');
-      }
+      const txHash = await writeContract({
+        address: nftContractConfig.address,
+        abi: nftContractConfig.abi,
+        functionName: 'mintPack',
+        args: [address, config.cardsPerPack],
+      });
+
+      console.log('✅ Transaction submitted! Hash:', txHash);
+
+      // Wait for transaction confirmation
+      console.log('⏳ Waiting for transaction confirmation...');
+      
+      // The useWaitForTransactionReceipt hook will handle the confirmation
+      // We'll return success immediately but the hook will update when confirmed
+      const successResult: MintPackResult = {
+        success: true,
+        transactionHash: txHash,
+        tokenIds: [1, 2, 3], // Placeholder - will be populated after confirmation
+      };
+      
+      setResult(successResult);
+      return successResult;
     } catch (err) {
+      console.error('❌ Minting error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       const errorResult: MintPackResult = {
         success: false,
