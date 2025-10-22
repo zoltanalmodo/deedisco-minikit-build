@@ -1,5 +1,5 @@
 // app/components/carousel/mint-button.tsx
-// MiniKit-only implementation for Farcaster Mini App
+// Option B: Beautiful UI + Dev-mode wallet selector + MiniKit auto-connect
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,18 +10,35 @@ import { useMintPack } from "../../../lib/hooks/useMintPack";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { CustomModal } from "./custom-modal";
 
+type Wallet = "warpcast" | "coinbase" | "metamask";
+
 interface MintButtonProps {
-  /** Custom button text */
   customButtonText?: string;
 }
 
 export default function MintButton({ customButtonText }: MintButtonProps) {
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   
-  // Minting state
+  // Detect environment
+  const isDev = process.env.NODE_ENV === 'development';
+  const [isMiniApp, setIsMiniApp] = useState(false);
+  
+  // Detect if running in Farcaster Mini App
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Check for Farcaster context
+      const inFarcaster = window.location !== window.parent.location || 
+                         navigator.userAgent.toLowerCase().includes('farcaster') ||
+                         navigator.userAgent.toLowerCase().includes('warpcast');
+      setIsMiniApp(inFarcaster);
+    }
+  }, []);
+  
+  // Modal and minting state
+  const [open, setOpen] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [transactionDetails, setTransactionDetails] = useState<{
     status: string;
@@ -30,17 +47,29 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
     tokenIds: string;
     transactionHash: string;
   } | null>(null);
-  const [open, setOpen] = useState(false);
+  const [walletType, setWalletType] = useState<Wallet | null>(null);
 
   const { mintPack, isLoading } = useMintPack();
 
-  // Auto-connect to Farcaster wallet when modal opens
+  // Auto-connect in Mini App mode OR when modal opens in dev mode with selected wallet
   useEffect(() => {
-    if (!isConnected && open && connectors.length > 0) {
-      // Connect to first connector (should be Farcaster Mini App connector)
-      connect({ connector: connectors[0] });
+    if (open && !isConnected && connectors.length > 0) {
+      if (isMiniApp) {
+        // Auto-connect to Farcaster wallet in Mini App
+        connect({ connector: connectors[0] });
+      } else if (isDev && walletType) {
+        // Auto-connect to selected wallet in dev mode
+        const targetConnector = connectors.find(c => {
+          if (walletType === 'coinbase') return c.name.toLowerCase().includes('coinbase');
+          if (walletType === 'metamask') return c.name.toLowerCase().includes('metamask');
+          return false;
+        });
+        if (targetConnector) {
+          connect({ connector: targetConnector });
+        }
+      }
     }
-  }, [isConnected, open, connectors, connect]);
+  }, [open, isConnected, connectors, connect, isMiniApp, isDev, walletType]);
 
   // Handle minting
   const handleMint = async () => {
@@ -62,7 +91,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
       if (mintResult.success) {
         setTransactionDetails({
           status: 'Confirmed',
-          payment: '0.001 ETH',
+          payment: 'Gas fees only',
           nftsMinted: '3 Cards',
           tokenIds: mintResult.tokenIds?.join(', ') || '1, 2, 3',
           transactionHash: mintResult.transactionHash || 'N/A',
@@ -70,12 +99,12 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
         setShowConfirmation(true);
         
         toast({
-          title: "NFTs Minted Successfully!",
-          description: `Transaction: ${mintResult.transactionHash}`,
+          title: "✅ NFTs Minted Successfully!",
+          description: `Transaction: ${mintResult.transactionHash?.slice(0, 10)}...`,
         });
       } else {
         toast({
-          title: "Minting Failed",
+          title: "❌ Minting Failed",
           description: mintResult.error || "Unknown error occurred",
           variant: "destructive",
         });
@@ -109,15 +138,17 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
   const handleDisconnect = () => {
     console.log('🔌 Disconnecting wallet and closing modal');
     disconnect();
+    setWalletType(null);
     setOpen(false);
   };
 
   return (
     <>
+      {/* Buy Pack Button */}
       <div className="flex flex-col items-center justify-center gap-4">
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors"
+          className="inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors shadow-lg"
           style={{
             borderRadius: '50px',
             paddingTop: '12px',
@@ -130,9 +161,9 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
         </button>
       </div>
 
-      {/* Wallet Selection Modal */}
+      {/* Wallet Modal */}
       <CustomModal open={open} onClose={handleCloseModal} allowClose={true}>
-        <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl border border-white/20">
           {!showConfirmation ? (
             <>
               {/* Pack Display */}
@@ -141,41 +172,92 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                   <Image
                     src="/pack-all-random.png"
                     alt="3 CARDS PACK"
-                    width={120}
-                    height={120}
-                    className="rounded-lg"
+                    width={192}
+                    height={192}
+                    className="rounded-lg shadow-lg"
+                    priority
                   />
-                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md">
-                    <span className="text-xs font-semibold text-gray-700">3 CARDS PACK</span>
+                  <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-4 py-1.5 rounded-full shadow-md border border-gray-200">
+                    <span className="text-xs font-semibold text-gray-800">3 CARDS PACK</span>
                   </div>
                 </div>
               </div>
 
-              {/* Instructions */}
+              {/* Title */}
               <div className="text-center mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                  {isConnected ? 'Ready to mint!' : 'Connecting wallet...'}
+                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                  {isConnected ? '🎉 Ready to mint!' : '🔌 Connecting wallet...'}
                 </h2>
                 {isConnected && address && (
-                  <p className="text-xs text-gray-600 font-mono truncate px-4">
+                  <p className="text-xs text-gray-600 font-mono truncate px-4 bg-gray-50 py-2 rounded-lg">
                     {address}
                   </p>
                 )}
               </div>
 
-              {/* Pack Price Display */}
-              <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+              {/* Dev Mode Wallet Selector */}
+              {isDev && !isMiniApp && !isConnected && (
+                <div className="mb-6 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                  <div className="flex items-center mb-3">
+                    <span className="text-sm font-semibold text-yellow-800">🔧 Development Mode</span>
+                  </div>
+                  <p className="text-xs text-yellow-700 mb-3">Select a wallet for testing:</p>
+                  
+                  <div className="space-y-2">
+                    {/* Coinbase Wallet */}
+                    <button
+                      onClick={() => setWalletType('coinbase')}
+                      className={`w-full p-3 rounded-lg border-2 transition-all ${
+                        walletType === 'coinbase'
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 hover:border-blue-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 mr-3 flex items-center justify-center bg-blue-100 rounded-full">
+                          <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-800">Coinbase Wallet</span>
+                      </div>
+                    </button>
+
+                    {/* MetaMask */}
+                    <button
+                      onClick={() => setWalletType('metamask')}
+                      className={`w-full p-3 rounded-lg border-2 transition-all ${
+                        walletType === 'metamask'
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-300 hover:border-orange-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 mr-3 flex items-center justify-center bg-orange-100 rounded-full">
+                          <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-800">MetaMask</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Price Display */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
                 <div className="text-center">
-                  <span className="text-sm font-medium text-gray-700">
-                    Pack Price: 0.001 ETH
-                  </span>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Connected to Farcaster Wallet
+                  <div className="text-sm font-semibold text-gray-800 mb-1">
+                    Pack Price: FREE (Gas only)
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {isMiniApp ? '🎯 Farcaster Wallet' : isDev ? '🔧 Dev Mode - Base Sepolia' : 'Base Sepolia Testnet'}
                   </div>
                 </div>
               </div>
 
-              {/* Disconnect Wallet Button - Only show when connected */}
+              {/* Disconnect Button */}
               {isConnected && (
                 <div className="mb-4">
                   <button
@@ -184,11 +266,11 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                     className="w-full inline-flex items-center justify-center text-sm font-semibold text-red-600 bg-white border-2 border-red-600 hover:bg-red-50 transition-colors"
                     style={{
                       borderRadius: '50px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
+                      paddingTop: '10px',
+                      paddingBottom: '10px',
                     }}
                   >
-                    Disconnect Wallet
+                    🔌 Disconnect Wallet
                   </button>
                 </div>
               )}
@@ -197,7 +279,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
               <div className="flex gap-3">
                 <button
                   onClick={handleCloseModal}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-blue-600 bg-white border-2 border-blue-600 hover:bg-blue-50 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
@@ -209,8 +291,8 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                 
                 <button
                   onClick={handleMint}
-                  disabled={isLoading || !isConnected}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
+                  disabled={isLoading || !isConnected || (isDev && !isMiniApp && !walletType)}
+                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
@@ -228,58 +310,78 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                       Connecting...
                     </>
                   ) : (
-                    'Buy Pack'
+                    '🎁 Buy Pack'
                   )}
                 </button>
               </div>
             </>
           ) : (
-            /* Confirmation View */
+            /* Success Confirmation */
             <div className="p-4">
-              <div className="flex items-center mb-4">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-green-600 text-lg">✓</span>
+              {/* Success Icon */}
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center animate-pulse">
+                  <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-green-800">NFTs Minted Successfully!</h3>
               </div>
+
+              {/* Title */}
+              <h3 className="text-2xl font-bold text-center text-green-800 mb-3">
+                🎉 NFTs Minted Successfully!
+              </h3>
               
-              <div className="mb-4">
-                <p className="text-sm text-green-700 mb-2">Thank you for your purchase!</p>
+              {/* Thank You Message */}
+              <div className="text-center mb-6">
+                <p className="text-base text-green-700 mb-2 font-semibold">Thank you for your purchase!</p>
                 <p className="text-sm text-green-600">Your 3 random cards have been minted to your wallet.</p>
               </div>
 
+              {/* Transaction Details */}
               {transactionDetails && (
-                <div className="bg-white p-3 rounded-lg mb-4 border border-green-200">
-                  <h4 className="text-sm font-semibold text-gray-800 mb-2">Transaction Details:</h4>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <span className="text-green-600 font-medium">{transactionDetails.status}</span>
+                <div className="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-xl mb-6 border-2 border-green-200">
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
+                    <span className="mr-2">📋</span>
+                    Transaction Details
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center py-2 border-b border-green-200">
+                      <span className="text-gray-600 font-medium">Status:</span>
+                      <span className="text-green-600 font-bold">✓ {transactionDetails.status}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Payment:</span>
-                      <span className="text-gray-800">{transactionDetails.payment}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-green-200">
+                      <span className="text-gray-600 font-medium">Payment:</span>
+                      <span className="text-gray-800 font-semibold">{transactionDetails.payment}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">NFTs Minted:</span>
-                      <span className="text-gray-800">{transactionDetails.nftsMinted}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-green-200">
+                      <span className="text-gray-600 font-medium">NFTs Minted:</span>
+                      <span className="text-gray-800 font-semibold">{transactionDetails.nftsMinted}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Token IDs:</span>
-                      <span className="text-gray-800">{transactionDetails.tokenIds}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-green-200">
+                      <span className="text-gray-600 font-medium">Token IDs:</span>
+                      <span className="text-gray-800 font-mono text-xs">{transactionDetails.tokenIds}</span>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-gray-600 mb-1">Transaction Hash:</span>
-                      <span className="text-gray-800 font-mono text-xs break-all">{transactionDetails.transactionHash}</span>
+                    <div className="flex flex-col py-2">
+                      <span className="text-gray-600 font-medium mb-2">Transaction Hash:</span>
+                      <a 
+                        href={`https://sepolia.basescan.org/tx/${transactionDetails.transactionHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 font-mono text-xs break-all underline"
+                      >
+                        {transactionDetails.transactionHash}
+                      </a>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
                   onClick={handleCloseModal}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-blue-600 bg-white border-2 border-blue-600 hover:bg-blue-50 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
@@ -293,14 +395,14 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                     handleCloseModal();
                     window.location.href = '/';
                   }}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors shadow-lg"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
                     paddingBottom: '12px',
                   }}
                 >
-                  Back to Main
+                  🏠 Back to Main
                 </button>
               </div>
             </div>
@@ -310,4 +412,3 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
     </>
   );
 }
-
