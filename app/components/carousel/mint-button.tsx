@@ -148,14 +148,19 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
       <div className="flex flex-col items-center justify-center gap-4">
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors shadow-lg"
+          className="text-white font-semibold shadow-lg transition-colors text-sm sm:text-base"
           style={{
+            backgroundColor: '#131312',
             borderRadius: '50px',
-            paddingTop: '12px',
-            paddingBottom: '12px',
-            paddingLeft: '24px',
-            paddingRight: '24px',
+            fontFamily: 'Fraunces, serif',
+            fontWeight: 900,
+            paddingTop: '16px',
+            paddingBottom: '16px',
+            paddingLeft: '32px',
+            paddingRight: '32px',
           }}
+          onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
+          onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
         >
           {customButtonText || "Buy Pack"}
         </button>
