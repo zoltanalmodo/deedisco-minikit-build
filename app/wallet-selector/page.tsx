@@ -103,7 +103,7 @@ export default function WalletSelector() {
           className={`w-full p-3 border-2 transition-all ${
             walletType === 'coinbase'
               ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 hover:border-blue-300 bg-white'
+              : 'border-gray-200 hover:border-blue-300 bg-gray-50'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{ borderRadius: '50px' }}
         >
@@ -128,7 +128,7 @@ export default function WalletSelector() {
           className={`w-full p-3 border-2 transition-all ${
             walletType === 'warpcast'
               ? 'border-purple-500 bg-purple-50'
-              : 'border-gray-300 hover:border-purple-300 bg-white'
+              : 'border-gray-200 hover:border-purple-300 bg-gray-50'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{ borderRadius: '50px' }}
         >
@@ -153,7 +153,7 @@ export default function WalletSelector() {
           className={`w-full p-3 border-2 transition-all ${
             walletType === 'metamask'
               ? 'border-orange-500 bg-orange-50'
-              : 'border-gray-300 hover:border-orange-300 bg-white'
+              : 'border-gray-200 hover:border-orange-300 bg-gray-50'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{ borderRadius: '50px' }}
         >
