@@ -3,11 +3,13 @@
 
 export const mockContract = {
   // Simulate minting a pack
-  async mintPack(to: string, quantity: number): Promise<{ success: boolean; tokenIds: number[]; transactionHash?: string }> {
+  async mintPack(_to?: string, _quantity?: number): Promise<{ success: boolean; tokenIds: number[]; transactionHash?: string; error?: string }> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Generate random token IDs
+    const quantity = _quantity || 3;
+    const to = _to || '0x1234567890123456789012345678901234567890';
     const tokenIds = Array.from({ length: quantity }, (_, i) => Math.floor(Math.random() * 1000000) + i + 1);
     
     // Simulate transaction hash
@@ -30,7 +32,7 @@ export const mockContract = {
   },
   
   // Simulate getting balance
-  async balanceOf(address: string): Promise<number> {
+  async balanceOf(_address: string): Promise<number> {
     return Math.floor(Math.random() * 10);
   }
 };

@@ -1,5 +1,5 @@
 import { createConfig, http } from 'wagmi';
-import { base, baseSepolia } from 'wagmi/chains';
+import { baseSepolia } from 'wagmi/chains';
 import { metaMask, coinbaseWallet } from 'wagmi/connectors';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 

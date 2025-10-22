@@ -28,7 +28,7 @@ interface MintButtonProps {
   showOnlySelected?: boolean;
 }
 
-export default function MintButton({ randomFrom, customButtonText, showOnlySelected = false }: MintButtonProps) {
+export default function MintButton({ randomFrom, customButtonText }: MintButtonProps) {
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
@@ -75,14 +75,21 @@ export default function MintButton({ randomFrom, customButtonText, showOnlySelec
   const [showOverlay, setShowOverlay] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [transactionDetails, setTransactionDetails] = useState<any>(null);
+  const [transactionDetails, setTransactionDetails] = useState<{
+    status: string;
+    payment: string;
+    nftsMinted: string;
+    tokenIds: string;
+    transactionHash: string;
+    isMock: boolean;
+  } | null>(null);
   const [useRealContract, setUseRealContract] = useState(false);
   const [walletType, setWalletType] = useState<Wallet | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<string>('');
-  const [allowModalClose, setAllowModalClose] = useState(true);
+  // const [allowModalClose, setAllowModalClose] = useState(true);
   const [open, setOpen] = useState(false);
 
-  const { mintPack, isLoading, transactionHash, isSuccess } = useMintPack();
+  const { mintPack, isLoading } = useMintPack();
 
   // Auto-connect in Mini App context
   useEffect(() => {
@@ -284,26 +291,26 @@ export default function MintButton({ randomFrom, customButtonText, showOnlySelec
     return [top, mid, bot];
   };
 
-  const [selectedPack, setSelectedPack] = useState<Img[]>([]);
+  // const [selectedPack, setSelectedPack] = useState<Img[]>([]);
 
   // Update selected pack when randomFrom changes
-  useEffect(() => {
-    setSelectedPack(getRandomSelection());
-  }, [randomFrom]);
+  // useEffect(() => {
+  //   setSelectedPack(getRandomSelection());
+  // }, [randomFrom]);
 
-  const handleClick = () => {
-    const newCount = clickCount + 1;
-    setClickCount(newCount);
-    
-    if (newCount >= 3) {
-      setShowOverlay(true);
-    }
-  };
+  // const handleClick = () => {
+  //   const newCount = clickCount + 1;
+  //   setClickCount(newCount);
+  //   
+  //   if (newCount >= 3) {
+  //     setShowOverlay(true);
+  //   }
+  // };
 
   const handleReset = () => {
     setClickCount(0);
     setShowOverlay(false);
-    setSelectedPack(getRandomSelection());
+    // setSelectedPack(getRandomSelection());
   };
 
   const handleBuyPack = () => {
@@ -376,7 +383,7 @@ export default function MintButton({ randomFrom, customButtonText, showOnlySelec
       )}
 
       {/* Wallet Selection Modal */}
-      <CustomModal open={open} onClose={handleCloseModal} allowClose={allowModalClose}>
+       <CustomModal open={open} onClose={handleCloseModal} allowClose={true}>
         <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto">
           {/* Pack Display */}
           <div className="flex justify-center mb-6">
