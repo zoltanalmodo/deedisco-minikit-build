@@ -2,7 +2,7 @@
 // Real minting implementation with BASE testnet
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { useToast } from "../../../lib/hooks/use-toast";
@@ -22,24 +22,20 @@ interface MintButtonProps {
     mid: Img[];
     bot: Img[];
   };
-  /** Your mint hook (upload, metadata, contract call, etc.) */
-  onMint?: (params: { pack: Img[]; wallet: Wallet }) => Promise<void> | void;
   /** Custom button text */
   customButtonText?: string;
   /** Show only selected pack (hide mid/bot) */
   showOnlySelected?: boolean;
 }
 
-export default function MintButton({ randomFrom, onMint, customButtonText, showOnlySelected = false }: MintButtonProps) {
+export default function MintButton({ randomFrom, customButtonText, showOnlySelected = false }: MintButtonProps) {
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
+  const { disconnect } = useDisconnect();
   
   // Additional check for actual wallet authentication
   const [isWalletAuthenticated, setIsWalletAuthenticated] = useState(false);
-  
-  // Use ref instead of state to prevent modal from closing on disconnect (ref updates immediately)
-  const isDisconnectingRef = useRef(false);
-  const allowCloseRef = useRef(true);
   
   // Check if wallet is actually authenticated (not just detected)
   const checkWalletAuthentication = async () => {
@@ -49,873 +45,606 @@ export default function MintButton({ randomFrom, onMint, customButtonText, showO
     }
     
     try {
-      // Try to get account info to verify authentication
-      if (typeof window !== 'undefined' && window.ethereum) {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        console.log('eth_accounts result:', accounts);
-        console.log('Current address:', address);
-        
-        const isAuthenticated = accounts && accounts.length > 0 && accounts[0].toLowerCase() === address.toLowerCase();
-        console.log('Authentication result:', isAuthenticated);
-        setIsWalletAuthenticated(isAuthenticated);
-        return isAuthenticated;
-      }
+      // Check if wallet is actually unlocked and address matches
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      const isUnlocked = accounts && accounts.length > 0;
+      const addressMatches = accounts && accounts[0] && accounts[0].toLowerCase() === address.toLowerCase();
+      
+      setIsWalletAuthenticated(isUnlocked && addressMatches);
+      return isUnlocked && addressMatches;
     } catch (error) {
-      console.log('Wallet authentication check failed:', error);
-      // If the check fails, assume authenticated if we have an address
-      setIsWalletAuthenticated(true);
-      return true;
+      console.error('Wallet authentication check failed:', error);
+      setIsWalletAuthenticated(false);
+      return false;
     }
-    
-    // If no ethereum object, assume authenticated if we have an address
-    setIsWalletAuthenticated(true);
-    return true;
   };
-  const { connect, connectors, isPending } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { mintPack, isLoading, result, error } = useMintPack();
-  const { isMiniApp, isLoading: isContextLoading } = useMiniAppContext();
-  const [open, setOpen] = useState(false);
-  const [allowModalClose, setAllowModalClose] = useState(true); // Control modal closing
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [useRealContract, setUseRealContract] = useState(false); // Toggle for testing
-  const [transactionDetails, setTransactionDetails] = useState<{
-    success: boolean;
-    transactionHash?: string;
-    tokenIds?: number[];
-    isMock?: boolean;
-    paymentAmount?: string;
-  } | null>(null);
-  const [walletType, setWalletType] = useState<Wallet | null>(null);
-  const [pack, setPack] = useState<Img[]>([]); // the locked random set for this modal open
-  const [connectionStatus, setConnectionStatus] = useState<string>("Ready to connect");
 
-  // ---- crypto-safe random helpers (no user shuffle UI) ----
-  function cryptoIndex(n: number) {
-    if (typeof window !== "undefined" && window.crypto?.getRandomValues) {
-      const buf = new Uint32Array(1);
-      const max = Math.floor(0xffffffff / n) * n; // rejection sampling, avoid modulo bias
-      while (true) {
-        window.crypto.getRandomValues(buf);
-        const r = buf[0];
-        if (r < max) return r % n;
-      }
-    }
-    return Math.floor(Math.random() * n); // fallback
-  }
-  function pickOne<T>(arr: T[]): T {
-    if (!arr || arr.length === 0) throw new Error("Empty image pool");
-    return arr[cryptoIndex(arr.length)];
-  }
-
-  // Roll exactly once per modal open; no way for user to change it
+  // Check wallet authentication when connection status changes
   useEffect(() => {
-    if (open) {
-      const rolled = [pickOne(randomFrom.top), pickOne(randomFrom.mid), pickOne(randomFrom.bot)];
-      setPack(rolled);
-      // Reset confirmation state when modal opens
-      setShowConfirmation(false);
-      setTransactionDetails(null);
+    if (isConnected && address) {
+      checkWalletAuthentication();
     } else {
-      setPack([]); // clear when closed
-      // Reset confirmation state when modal closes
-      setShowConfirmation(false);
-      setTransactionDetails(null);
+      setIsWalletAuthenticated(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [isConnected, address]);
+
+  // Mini App context detection
+  const { isMiniApp, isLoading: isContextLoading } = useMiniAppContext();
+  
+  // Minting state
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [transactionDetails, setTransactionDetails] = useState<any>(null);
+  const [useRealContract, setUseRealContract] = useState(false);
+  const [walletType, setWalletType] = useState<Wallet | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<string>('');
+  const [allowModalClose, setAllowModalClose] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  const { mintPack, isLoading, transactionHash, isSuccess } = useMintPack();
 
   // Auto-connect in Mini App context
   useEffect(() => {
     if (isMiniApp && !isContextLoading && !isConnected && open) {
-      setConnectionStatus("Auto-connecting to Warpcast wallet...");
-      // Auto-connect to the first available connector (should be Farcaster Mini App)
+      // Auto-connect to first available connector in Mini App
       if (connectors.length > 0) {
         connect({ connector: connectors[0] });
       }
     }
-  }, [isMiniApp, isContextLoading, isConnected, open, connect, connectors]);
+  }, [isMiniApp, isContextLoading, isConnected, open, connectors, connect]);
 
-  // Check wallet authentication when connection state changes
-  useEffect(() => {
-    console.log('🔍 Connection check - isConnected:', isConnected, 'address:', address, 'walletType:', walletType);
-    
-    // Update connection status and authentication when wallet connects
-    if (walletType && isConnected && address) {
-      setConnectionStatus(`✅ Connected to ${walletType}! You can now mint NFTs.`);
-      setIsWalletAuthenticated(true);
-      console.log('✅ Wallet authenticated - address:', address);
-    } else if (!isConnected && walletType) {
-      setIsWalletAuthenticated(false);
-      console.log('❌ Wallet not authenticated - isConnected:', isConnected, 'address:', address, 'walletType:', walletType);
-    } else {
-      setIsWalletAuthenticated(false);
-    }
-  }, [isConnected, address, walletType]);
-
-  // CRITICAL: Watch for isConnected changes that might close modal
-  useEffect(() => {
-    if (!isConnected && open) {
-      console.log('⚠️ WALLET DISCONNECTED WHILE MODAL IS OPEN!');
-      console.log('⚠️ This might be trying to close the modal!');
-      console.log('⚠️ allowModalClose:', allowModalClose);
-    }
-  }, [isConnected, open, allowModalClose]);
-
+  // Handle minting
   const handleMint = async () => {
-    console.log('🎯 Mint attempt - isMiniApp:', isMiniApp, 'isConnected:', isConnected, 'useRealContract:', useRealContract, 'walletType:', walletType, 'isWalletAuthenticated:', isWalletAuthenticated);
+    console.log('Mint attempt - isMiniApp:', isMiniApp, 'isConnected:', isConnected, 'useRealContract:', useRealContract, 'walletType:', walletType);
     
-    if (!isMiniApp && useRealContract && !walletType) {
-      const errorMsg = "Please select a wallet first.";
-      setConnectionStatus(errorMsg);
+    if (!isMiniApp && useRealContract && (!isConnected || !isWalletAuthenticated)) {
       toast({
-        title: "No Wallet Selected",
-        description: errorMsg,
+        title: "Connection Required",
+        description: "Please connect your wallet to continue with real minting.",
         variant: "destructive",
       });
       return;
     }
-    
-    if (!isMiniApp && useRealContract && (!isConnected || !isWalletAuthenticated)) {
-      const errorMsg = `Please ${!isConnected ? 'connect' : 'unlock'} your wallet to mint NFTs.`;
-      setConnectionStatus(errorMsg);
+
+    if (!isMiniApp && useRealContract && !walletType) {
       toast({
-        title: "Wallet Not Authenticated",
-        description: errorMsg,
+        title: "No Wallet Selected",
+        description: "Please select a wallet option first.",
         variant: "destructive",
       });
       return;
     }
 
     try {
+      setConnectionStatus('Minting NFTs...');
+      
       if ((isMiniApp && isConnected) || (!isMiniApp && useRealContract && isConnected)) {
-        // Use real contract with actual wallet connection
-        setConnectionStatus("🔄 Minting NFTs to your wallet...");
+        // Real contract minting
+        console.log('🔄 Calling real mintPack...');
         const mintResult = await mintPack();
         
         if (mintResult.success) {
-          setConnectionStatus("✅ NFTs minted successfully!");
+          setConnectionStatus('NFTs minted successfully!');
           setTransactionDetails({
-            success: true,
-            transactionHash: mintResult.transactionHash,
-            tokenIds: mintResult.tokenIds,
-            isMock: false,
-            paymentAmount: "0.001 ETH"
+            status: 'Confirmed',
+            payment: '0.001 ETH',
+            nftsMinted: '3 Cards',
+            tokenIds: '1, 2, 3',
+            transactionHash: mintResult.transactionHash || 'N/A',
+            isMock: false
           });
           setShowConfirmation(true);
+          
+          toast({
+            title: "NFTs Minted Successfully!",
+            description: `Transaction: ${mintResult.transactionHash}`,
+          });
         } else {
-          const errorMsg = mintResult.error || "There was an error minting your NFTs. Please try again.";
-          setConnectionStatus(`❌ Minting Failed: ${errorMsg}`);
+          setConnectionStatus(`Minting failed: ${mintResult.error}`);
           toast({
             title: "Minting Failed",
-            description: errorMsg,
+            description: mintResult.error || "Unknown error occurred",
             variant: "destructive",
           });
         }
       } else if (!isMiniApp && !useRealContract) {
-        // Use mock contract for testing (only when testing toggle is OFF)
-        setConnectionStatus("🔄 Mock minting (testing mode)...");
-        const mockAddress = address || "0x1234567890123456789012345678901234567890";
-        const mockResult = await mockContract.mintPack(mockAddress, 3);
+        // Mock minting
+        console.log('🔄 Calling mock mintPack...');
+        const mockResult = await mockContract.mintPack();
         
         if (mockResult.success) {
-          setConnectionStatus("✅ Mock minting successful! (Testing mode)");
+          setConnectionStatus('Mock NFTs minted successfully!');
           setTransactionDetails({
-            success: true,
-            transactionHash: mockResult.transactionHash,
-            tokenIds: mockResult.tokenIds,
-            isMock: true,
-            paymentAmount: "0.001 ETH"
+            status: 'Mock Confirmed',
+            payment: 'Mock payment (testing)',
+            nftsMinted: '3 Cards',
+            tokenIds: '1, 2, 3',
+            transactionHash: mockResult.transactionHash || 'Mock-123456',
+            isMock: true
           });
           setShowConfirmation(true);
-        } else {
-          setConnectionStatus("❌ Mock minting failed");
+          
           toast({
-            title: "Minting Failed",
-            description: "There was an error minting your NFTs. Please try again.",
+            title: "Mock NFTs Minted!",
+            description: "This was a test transaction.",
+          });
+        } else {
+          setConnectionStatus(`Mock minting failed: ${mockResult.error}`);
+          toast({
+            title: "Mock Minting Failed",
+            description: mockResult.error || "Unknown error occurred",
             variant: "destructive",
           });
         }
-      } else {
-        // This should not happen - we already check connection above
-        const errorMsg = "Please connect your wallet before minting.";
-        setConnectionStatus(`❌ ${errorMsg}`);
-        toast({
-          title: "Connection Required",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        return;
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error occurred";
-      setConnectionStatus(`❌ Error: ${errorMsg}`);
+    } catch (error) {
+      console.error('Minting error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setConnectionStatus(`Error: ${errorMessage}`);
+      
       toast({
-        title: "Minting Failed",
-        description: "There was an error minting your NFTs. Please try again.",
+        title: "Minting Error",
+        description: errorMessage,
         variant: "destructive",
       });
     }
   };
 
-      return (
-        <>
-          {/* Trigger Button */}
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="text-white font-semibold shadow-lg transition-colors text-sm sm:text-base"
-            style={{ 
-              backgroundColor: '#131312',
-              borderRadius: '50px',
-              fontFamily: 'Fraunces, serif',
-              fontWeight: 900,
-              paddingTop: '16px',
-              paddingBottom: '16px',
-              paddingLeft: '32px',
-              paddingRight: '32px'
-            }}
-            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
-            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
-          >
-            {customButtonText || "Buy a pack of random parts"}
-          </button>
+  // Handle wallet connection
+  const handleConnectWallet = async () => {
+    if (!walletType) {
+      toast({
+        title: "No Wallet Selected",
+        description: "Please select a wallet option first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-          {/* Custom Modal - WE CONTROL THIS! */}
-          <CustomModal 
-            open={open} 
-            onClose={() => {
-              console.log('🚪 Modal close requested, allowModalClose:', allowModalClose);
-              if (allowModalClose) {
-                setOpen(false);
-              } else {
-                console.log('🚫 Modal close BLOCKED by allowModalClose flag');
-              }
-            }}
-            allowClose={allowModalClose}
-          >
-            <div className="rounded-2xl border border-white/20 bg-white/95 p-6 shadow-2xl"
->
-          {showConfirmation ? (
-            // Confirmation Content
-            <>
-              {/* Success Icon */}
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
+    try {
+      setConnectionStatus('Connecting to wallet...');
+      
+      // Find the target connector
+      let targetConnector = null;
+      
+      if (walletType === 'metamask') {
+        // Look for MetaMask specifically, exclude Coinbase
+        targetConnector = connectors.find(connector => 
+          connector.name.toLowerCase().includes('metamask') && 
+          !connector.name.toLowerCase().includes('coinbase')
+        );
+      } else if (walletType === 'coinbase') {
+        targetConnector = connectors.find(connector => 
+          connector.name.toLowerCase().includes('coinbase')
+        );
+      } else if (walletType === 'warpcast') {
+        targetConnector = connectors.find(connector => 
+          connector.name.toLowerCase().includes('warpcast')
+        );
+      }
+
+      if (!targetConnector) {
+        const availableConnectors = connectors.map(c => ({ id: c.id, name: c.name }));
+        console.log('Available connectors:', availableConnectors);
+        throw new Error(`Wallet not found. Available connectors: ${availableConnectors.map(c => c.name).join(', ')}`);
+      }
+
+      console.log('Connecting to:', targetConnector.name);
+      await connect({ connector: targetConnector });
+      
+      // Wait for connection to be established
+      let attempts = 0;
+      const maxAttempts = 10;
+      while (attempts < maxAttempts && !isConnected) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+      }
+      
+      if (isConnected) {
+        setConnectionStatus('✅ Connected to wallet! You can now mint NFTs.');
+        toast({
+          title: "Wallet Connected!",
+          description: "You can now mint NFTs.",
+        });
+      } else {
+        setConnectionStatus('❌ Connection timed out. Please try again.');
+        toast({
+          title: "Connection Timeout",
+          description: "Please try connecting again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Connection error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Connection failed';
+      setConnectionStatus(`❌ Connection failed: ${errorMessage}`);
+      
+      toast({
+        title: "Connection Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Reset overlay when modal opens/closes
+  useEffect(() => {
+    if (open) {
+      setShowConfirmation(false);
+      setTransactionDetails(null);
+    }
+  }, [open]);
+
+  // Generate random selection
+  const getRandomSelection = () => {
+    const top = randomFrom.top[Math.floor(Math.random() * randomFrom.top.length)];
+    const mid = randomFrom.mid[Math.floor(Math.random() * randomFrom.mid.length)];
+    const bot = randomFrom.bot[Math.floor(Math.random() * randomFrom.bot.length)];
+    return [top, mid, bot];
+  };
+
+  const [selectedPack, setSelectedPack] = useState<Img[]>([]);
+
+  // Update selected pack when randomFrom changes
+  useEffect(() => {
+    setSelectedPack(getRandomSelection());
+  }, [randomFrom]);
+
+  const handleClick = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    
+    if (newCount >= 3) {
+      setShowOverlay(true);
+    }
+  };
+
+  const handleReset = () => {
+    setClickCount(0);
+    setShowOverlay(false);
+    setSelectedPack(getRandomSelection());
+  };
+
+  const handleBuyPack = () => {
+    setOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setOpen(false);
+    setShowConfirmation(false);
+    setTransactionDetails(null);
+    setConnectionStatus('');
+  };
+
+  const handleDisconnect = () => {
+    console.log('🔌 Disconnecting wallet and closing modal');
+    // Disconnect wallet
+    disconnect();
+    // Reset UI state
+    setConnectionStatus('Wallet disconnected');
+    setWalletType(null);
+    setIsWalletAuthenticated(false);
+    // Close modal
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <div className="flex flex-col items-center justify-center gap-4">
+        <button
+          onClick={handleBuyPack}
+          className="inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors"
+          style={{
+            borderRadius: '50px',
+            paddingTop: '12px',
+            paddingBottom: '12px',
+            paddingLeft: '24px',
+            paddingRight: '24px',
+          }}
+        >
+          {customButtonText || "Buy Pack"}
+        </button>
+      </div>
+
+      {/* Reset Overlay */}
+      {showOverlay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">🎁</span>
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset</h3>
+              <p className="text-sm text-gray-600 mb-6">and explore more!</p>
+            </div>
+            <button
+              onClick={handleReset}
+              className="w-full inline-flex items-center justify-center text-sm font-semibold text-white transition-colors"
+              style={{
+                borderRadius: '50px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                backgroundColor: '#E4804A',
+                animation: 'pulsateButton 1.5s ease-in-out infinite',
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      )}
 
-              {/* Title */}
-              <h2 className="text-2xl font-bold text-center mb-2" style={{ color: '#131212' }}>
-                {transactionDetails?.isMock ? "NFTs Minted Successfully! (Mock)" : "NFTs Minted Successfully!"}
-              </h2>
-
-              {/* Thank you message */}
-              <div className="text-center mb-6">
-                <p className="text-lg mb-2" style={{ color: '#131212' }}>
-                  Thank you for your purchase!
-                </p>
-                <p className="text-sm" style={{ color: '#666' }}>
-                  Your 3 random cards have been minted to your wallet.
-                </p>
+      {/* Wallet Selection Modal */}
+      <CustomModal open={open} onClose={handleCloseModal} allowClose={allowModalClose}>
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto">
+          {/* Pack Display */}
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <Image
+                src="/pack-all-random.png"
+                alt="3 CARDS PACK"
+                width={120}
+                height={120}
+                className="rounded-lg"
+              />
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md">
+                <span className="text-xs font-semibold text-gray-700">3 CARDS PACK</span>
               </div>
+            </div>
+          </div>
 
-              {/* Transaction Details */}
-              {transactionDetails && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <h3 className="font-semibold mb-3" style={{ color: '#131212' }}>Transaction Details</h3>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span style={{ color: '#666' }}>Status:</span>
-                      <span className="font-semibold text-green-600">Confirmed</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span style={{ color: '#666' }}>Payment:</span>
-                      <span className="font-semibold" style={{ color: '#131212' }}>{transactionDetails?.paymentAmount || '0.001 ETH'}</span>
-                    </div>
-                    
-                    <div className="flex justify-between">
-                      <span style={{ color: '#666' }}>NFTs Minted:</span>
-                      <span className="font-semibold" style={{ color: '#131212' }}>3 Cards</span>
-                    </div>
-                    
-                    {transactionDetails?.tokenIds && (
-                      <div className="flex justify-between">
-                        <span style={{ color: '#666' }}>Token IDs:</span>
-                        <span className="font-mono text-xs" style={{ color: '#131212' }}>
-                          {transactionDetails?.tokenIds?.join(', ') || 'N/A'}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {transactionDetails?.transactionHash && (
-                      <div className="flex justify-between">
-                        <span style={{ color: '#666' }}>Transaction:</span>
-                        <span className="font-mono text-xs" style={{ color: '#131212' }}>
-                          {transactionDetails?.transactionHash?.slice(0, 10) || 'N/A'}...
-                        </span>
-                      </div>
-                    )}
-                    
-                    {transactionDetails?.isMock && (
-                      <div className="mt-2 p-2 bg-yellow-50 rounded text-xs text-yellow-800">
-                        ⚠️ This is a mock transaction for testing purposes
-                      </div>
-                    )}
+          {/* Instructions */}
+          <div className="text-center mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Choose your wallet</h2>
+          </div>
+
+          {/* Testing Toggle - Only show in browser mode */}
+          {!isMiniApp && (
+            <div className="mb-6">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={useRealContract}
+                  onChange={(e) => setUseRealContract(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">☑ Use Real Contract (requires wallet connection)</span>
+              </label>
+            </div>
+          )}
+
+          {/* Pack Price Display */}
+          <div className="mb-6 p-3 bg-gray-50 rounded-lg">
+            <div className="text-center">
+              <span className="text-sm font-medium text-gray-700">
+                Pack Price: 0.001 ETH
+              </span>
+              <div className="text-xs text-gray-500 mt-1">
+                {isMiniApp ? 'Connected to Warpcast wallet' : (useRealContract ? 'Real payment required' : 'Mock payment (testing)')}
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet Selector - Only show in browser mode */}
+          {!isMiniApp && (
+            <div className="mb-6 space-y-3">
+              <div className="text-sm font-medium text-gray-700 mb-3">Wallet Options:</div>
+              
+              <div 
+                className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  walletType === 'coinbase' 
+                    ? 'border-blue-400 bg-blue-100' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setWalletType('coinbase')}
+              >
+                <div className="flex items-center">
+                  <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
                   </div>
+                  <span className="text-sm font-medium">Coinbase Wallet</span>
                 </div>
-              )}
+              </div>
 
-              {/* Action Buttons */}
+              <div 
+                className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  walletType === 'warpcast' 
+                    ? 'border-blue-400 bg-blue-100' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setWalletType('warpcast')}
+              >
+                <div className="flex items-center">
+                  <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-purple-600 rounded-full"></div>
+                  </div>
+                  <span className="text-sm font-medium">Warpcast Wallet</span>
+                </div>
+              </div>
+
+              <div 
+                className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                  walletType === 'metamask' 
+                    ? 'border-blue-400 bg-blue-100' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setWalletType('metamask')}
+              >
+                <div className="flex items-center">
+                  <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                    <div className="w-4 h-4 bg-orange-600 rounded-full"></div>
+                  </div>
+                  <span className="text-sm font-medium">MetaMask Wallet</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Disconnect Wallet Button - Only show when connected */}
+          {isConnected && (
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={handleDisconnect}
+                className="w-full inline-flex items-center justify-center text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                style={{
+                  borderRadius: '50px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                }}
+              >
+                Disconnect Wallet
+              </button>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleCloseModal}
+              className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-blue-600 bg-white border-2 border-blue-600 hover:bg-blue-50 transition-colors"
+              style={{
+                borderRadius: '50px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+              }}
+            >
+              Cancel
+            </button>
+            
+            {!isMiniApp && useRealContract && !isConnected ? (
+              <button
+                onClick={handleConnectWallet}
+                disabled={!walletType || isPending}
+                className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                style={{
+                  borderRadius: '50px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                }}
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  'Connect Wallet'
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleMint}
+                disabled={isLoading}
+                className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
+                style={{
+                  borderRadius: '50px',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {useRealContract ? 'Minting...' : 'Processing...'}
+                  </>
+                ) : (
+                  'Buy Pack'
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* System Message Display */}
+          {connectionStatus && (
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="text-sm font-medium text-yellow-800 mb-1">System Message:</div>
+              <div className="text-xs text-yellow-700">{connectionStatus}</div>
+              <div className="text-xs text-yellow-600 mt-1">
+                This area will show the actual system messages that appear in the top-right corner.
+              </div>
+            </div>
+          )}
+
+          {/* Confirmation View */}
+          {showConfirmation && transactionDetails && (
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-green-600 text-lg">✓</span>
+                </div>
+                <h3 className="text-lg font-semibold text-green-800">NFTs Minted Successfully!</h3>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-sm text-green-700 mb-2">Thank you for your purchase!</p>
+                <p className="text-sm text-green-600">Your 3 random cards have been minted to your wallet.</p>
+              </div>
+
+              <div className="bg-white p-3 rounded-lg mb-4">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Transaction Details:</h4>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span className="text-green-600 font-medium">{transactionDetails.status}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Payment:</span>
+                    <span className="text-gray-800">{transactionDetails.payment}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">NFTs Minted:</span>
+                    <span className="text-gray-800">{transactionDetails.nftsMinted}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Token IDs:</span>
+                    <span className="text-gray-800">{transactionDetails.tokenIds}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Transaction Hash:</span>
+                    <span className="text-gray-800 font-mono text-xs">{transactionDetails.transactionHash}</span>
+                  </div>
+                  {transactionDetails.isMock && (
+                    <div className="text-yellow-600 text-xs mt-2 p-2 bg-yellow-50 rounded">
+                      ⚠️ This was a mock transaction for testing purposes.
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="flex gap-3">
                 <button
-                  type="button"
-                  onClick={() => {
-                    setShowConfirmation(false);
-                    setTransactionDetails(null);
-                    setOpen(false);
-                  }}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold"
-                  style={{ 
-                    backgroundColor: 'transparent',
+                  onClick={handleCloseModal}
+                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-blue-600 bg-white border-2 border-blue-600 hover:bg-blue-50 transition-colors"
+                  style={{
                     borderRadius: '50px',
-                    fontFamily: 'Fraunces, serif',
-                    fontWeight: 900,
-                    paddingTop: '16px',
-                    paddingBottom: '16px',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    border: '2px solid #3B82F6',
-                    color: '#3B82F6'
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
                   }}
-                  onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
-                  onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
                 >
                   Close
                 </button>
-
                 <button
-                  type="button"
                   onClick={() => {
-                    setShowConfirmation(false);
-                    setTransactionDetails(null);
-                    setOpen(false);
-                    // Navigate back to main page
+                    handleCloseModal();
+                    // Navigate to main page
                     window.location.href = '/';
                   }}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white shadow"
-                  style={{ 
-                    backgroundColor: '#131212',
+                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 transition-colors"
+                  style={{
                     borderRadius: '50px',
-                    fontFamily: 'Fraunces, serif',
-                    fontWeight: 900,
-                    paddingTop: '16px',
-                    paddingBottom: '16px',
-                    paddingLeft: '32px',
-                    paddingRight: '32px'
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
                   }}
-                  onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
-                  onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
                 >
                   Back to Main
                 </button>
               </div>
-            </>
-          ) : (
-            // Original Wallet Selection Content
-            <>
-              {/* Selected Pack Image - moved to top */}
-              <div className="flex justify-center mb-4">
-                <div className={`grid gap-2 ${showOnlySelected ? "" : "grid-cols-3"}`}>
-                  {(pack.length ? pack : new Array(showOnlySelected ? 1 : 3).fill(null)).map((img, i) => {
-                    // If showOnlySelected is true, only show the first item (top)
-                    if (showOnlySelected && i > 0) return null;
-                    
-                    return (
-                      <div
-                        key={i}
-                        className={`relative ${showOnlySelected ? "aspect-square w-48" : "h-20"} overflow-hidden rounded-lg border border-white/20 ${
-                          img ? "" : "animate-pulse bg-white/10"
-                        }`}
-                      >
-                        {img && (
-                          <Image
-                            src={img.src || "/placeholder.svg"}
-                            alt={img.alt}
-                            fill
-                            className="object-cover"
-                            sizes={showOnlySelected ? "192px" : "80px"}
-                            priority={i < 3}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <p className="text-base text-center mb-4" style={{ color: '#131212' }}>
-                Choose your wallet
-              </p>
-
-              {/* Testing Toggle - Only show in browser mode */}
-              {!isMiniApp && (
-                <div className="mb-4 flex items-center justify-center gap-2">
-                  <label className="flex items-center gap-2 text-sm" style={{ color: '#131212' }}>
-                    <input
-                      type="checkbox"
-                      checked={useRealContract}
-                      onChange={(e) => setUseRealContract(e.target.checked)}
-                      className="rounded"
-                    />
-                    Use Real Contract (requires wallet connection)
-                  </label>
-                </div>
-              )}
-
-              {/* Pack Price Display */}
-              <div className="mb-4 text-center">
-                <div className="text-lg font-semibold" style={{ color: '#131212' }}>
-                  Pack Price: 0.001 ETH
-                </div>
-                <div className="text-sm" style={{ color: '#666' }}>
-                  {isMiniApp ? "Connected to Warpcast wallet" : (useRealContract ? "Real payment required" : "Mock payment (testing)")}
-                </div>
-              </div>
-
-              {/* Wallet selector - Only show in browser mode */}
-              {!isMiniApp && (
-                <div className="space-y-3">
-                  <WalletCard
-                    id="coinbase"
-                    label="Coinbase Wallet"
-                    desc=""
-                    icon="coinbase"
-                    selected={walletType === "coinbase"}
-                    onSelect={() => setWalletType("coinbase")}
-                  />
-                  <WalletCard
-                    id="warpcast"
-                    label="Warpcast Wallet"
-                    desc=""
-                    icon="warpcast"
-                    selected={walletType === "warpcast"}
-                    onSelect={() => setWalletType("warpcast")}
-                  />
-                  <WalletCard
-                    id="metamask"
-                    label="MetaMask Wallet"
-                    desc=""
-                    icon="metamask"
-                    selected={walletType === "metamask"}
-                    onSelect={() => setWalletType("metamask")}
-                  />
-                </div>
-              )}
-
-
-              {/* DISCONNECT BUTTON - Closes modal (Option B) */}
-              {isConnected && (
-                <div className="mb-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log('🔌 Disconnecting wallet and closing modal');
-                      // Disconnect wallet
-                      disconnect();
-                      // Reset UI state
-                      setConnectionStatus('Wallet disconnected');
-                      setWalletType(null);
-                      setIsWalletAuthenticated(false);
-                      // Close modal
-                      setOpen(false);
-                    }}
-                    className="w-full inline-flex items-center justify-center text-sm font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
-                    style={{
-                      borderRadius: '50px',
-                      paddingTop: '12px',
-                      paddingBottom: '12px',
-                    }}
-                  >
-                    Disconnect Wallet
-                  </button>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="mt-6 flex justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('❌ Cancel button clicked - closing modal');
-                    setOpen(false);
-                  }}
-                  className="inline-flex items-center justify-center text-sm font-semibold"
-                  style={{ 
-                    backgroundColor: 'transparent',
-                    borderRadius: '50px',
-                    fontFamily: 'Fraunces, serif',
-                    fontWeight: 900,
-                    paddingTop: '16px',
-                    paddingBottom: '16px',
-                    paddingLeft: '32px',
-                    paddingRight: '32px',
-                    border: '2px solid #3B82F6',
-                    color: '#3B82F6'
-                  }}
-                  onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
-                  onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'transparent'}
-                >
-                  Cancel
-                </button>
-
-    {(!isMiniApp && useRealContract && !isConnected && !walletType) ? (
-      <div className="text-center p-4">
-        <div className="text-sm mb-2" style={{ color: '#131212' }}>Please select a wallet</div>
-        <div className="text-xs" style={{ color: '#666' }}>Choose a wallet option above to continue</div>
-      </div>
-    ) : (!isMiniApp && useRealContract && (!isConnected || !isWalletAuthenticated) && walletType) ? (
-      <button
-        onClick={async () => {
-          setConnectionStatus(`Attempting to connect ${walletType} wallet...`);
-          
-          // Debug: Log available connectors
-          console.log('Available connectors:', connectors.map(c => ({ id: c.id, name: c.name })));
-          
-          try {
-            let targetConnector;
-            
-            if (walletType === "metamask") {
-              // Find MetaMask connector - be more specific
-              targetConnector = connectors.find(connector => {
-                const name = connector.name.toLowerCase();
-                const id = connector.id.toLowerCase();
-                return (
-                  name.includes('metamask') || 
-                  id.includes('metamask') ||
-                  (name.includes('injected') && !name.includes('coinbase')) ||
-                  (id.includes('injected') && !id.includes('coinbase'))
-                );
-              });
-              
-              // If MetaMask not found, don't fallback to other connectors
-              if (!targetConnector) {
-                setConnectionStatus("MetaMask connector not found. Please ensure MetaMask extension is installed and enabled.");
-                toast({
-                  title: "MetaMask Not Found",
-                  description: "MetaMask extension not detected. Please install and enable MetaMask.",
-                  variant: "destructive",
-                });
-                return; // Exit early, don't try to connect
-              }
-            } else if (walletType === "coinbase") {
-              // Find Coinbase Wallet connector - be specific
-              targetConnector = connectors.find(connector => {
-                const name = connector.name.toLowerCase();
-                const id = connector.id.toLowerCase();
-                return (
-                  name.includes('coinbase') ||
-                  id.includes('coinbase') ||
-                  (name.includes('injected') && name.includes('coinbase'))
-                );
-              });
-            } else if (walletType === "warpcast") {
-              // Find Warpcast connector (should use Coinbase)
-              targetConnector = connectors.find(connector => {
-                const name = connector.name.toLowerCase();
-                const id = connector.id.toLowerCase();
-                return (
-                  name.includes('coinbase') ||
-                  id.includes('coinbase') ||
-                  (name.includes('injected') && name.includes('coinbase'))
-                );
-              });
-            }
-            
-            if (targetConnector) {
-              setConnectionStatus(`Connecting to ${walletType}...`);
-              
-              try {
-                await connect({ connector: targetConnector });
-                
-                // Wait for connection to be established (polling approach)
-                let attempts = 0;
-                const maxAttempts = 10;
-                
-                while (attempts < maxAttempts && !isConnected) {
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                  attempts++;
-                }
-                
-                if (isConnected) {
-                  setConnectionStatus(`${walletType} wallet connected successfully!`);
-                } else {
-                  setConnectionStatus(`Connection to ${walletType} timed out. Please try again.`);
-                  toast({
-                    title: "Connection Timeout",
-                    description: `Connection to ${walletType} timed out. Please try again.`,
-                    variant: "destructive",
-                  });
-                }
-              } catch (connectError) {
-                setConnectionStatus(`Connection to ${walletType} failed: ${connectError instanceof Error ? connectError.message : 'Unknown error'}`);
-                toast({
-                  title: "Connection Failed",
-                  description: `Failed to connect to ${walletType}. Please try again.`,
-                  variant: "destructive",
-                });
-              }
-            } else {
-              const availableConnectors = connectors.map(c => c.name).join(', ');
-              setConnectionStatus(`${walletType} not found. Available connectors: ${availableConnectors}`);
-              toast({
-                title: `${walletType} Not Found`,
-                description: `Available connectors: ${availableConnectors}`,
-                variant: "destructive",
-              });
-            }
-          } catch (error) {
-            setConnectionStatus(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            toast({
-              title: "Connection Failed",
-              description: `Failed to connect to ${walletType}. Please try again.`,
-              variant: "destructive",
-            });
-          }
-        }}
-        disabled={isPending}
-        className="inline-flex items-center justify-center text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
-        style={{ 
-          backgroundColor: '#3B82F6',
-          borderRadius: '50px', // Stadium shape
-          fontFamily: 'Fraunces, serif',
-          fontWeight: 900,
-          paddingTop: '16px',
-          paddingBottom: '16px',
-          paddingLeft: '32px',
-          paddingRight: '32px'
-        }}
-        onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#2563EB'}
-        onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#3B82F6'}
-      >
-        {isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Connecting...
-          </>
-        ) : (
-          "Connect Wallet"
-        )}
-      </button>
-    ) : (isMiniApp && isConnected) || (!isMiniApp && useRealContract && isConnected && isWalletAuthenticated) || (!isMiniApp && !useRealContract) ? (
-                  <button
-                    type="button"
-                    onClick={handleMint}
-                    disabled={isLoading || pack.length !== 3}
-                    className="inline-flex items-center justify-center text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
-                    style={{ 
-                      backgroundColor: '#131212',
-                      borderRadius: '50px', // Capsule shape - half the height
-                      fontFamily: 'Fraunces, serif',
-                      fontWeight: 900,
-                      paddingTop: '16px',
-                      paddingBottom: '16px',
-                      paddingLeft: '32px',
-                      paddingRight: '32px'
-                    }}
-                    onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
-                    onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#131312'}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Minting...
-                      </>
-                    ) : (
-                      "Buy Pack"
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={async () => {
-                      setConnectionStatus(`Attempting to connect ${walletType} wallet...`);
-                      
-                      // Debug: Log available connectors
-                      console.log('Available connectors:', connectors.map(c => ({ id: c.id, name: c.name })));
-                      
-                      try {
-                        let targetConnector;
-                        
-                        if (walletType === "metamask") {
-                          // Find MetaMask connector - be more specific
-                          targetConnector = connectors.find(connector => {
-                            const name = connector.name.toLowerCase();
-                            const id = connector.id.toLowerCase();
-                            return (
-                              name.includes('metamask') || 
-                              id.includes('metamask') ||
-                              (name.includes('injected') && !name.includes('coinbase')) ||
-                              (id.includes('injected') && !id.includes('coinbase'))
-                            );
-                          });
-                          
-                          if (!targetConnector) {
-                            console.error('MetaMask connector not found');
-                            setConnectionStatus('MetaMask connector not found. Available connectors: ' + connectors.map(c => c.name).join(', '));
-                            toast({
-                              title: "MetaMask Not Found",
-                              description: "MetaMask connector not found. Available connectors: " + connectors.map(c => c.name).join(', '),
-                              variant: "destructive",
-                            });
-                            return; // Exit early, don't try to connect
-                          }
-                        } else if (walletType === "coinbase") {
-                          // Find Coinbase Wallet connector - be specific
-                          targetConnector = connectors.find(connector => {
-                            const name = connector.name.toLowerCase();
-                            const id = connector.id.toLowerCase();
-                            return (
-                              name.includes('coinbase') ||
-                              id.includes('coinbase') ||
-                              (name.includes('injected') && name.includes('coinbase'))
-                            );
-                          });
-                        } else if (walletType === "warpcast") {
-                          // Find Warpcast connector (should use Coinbase)
-                          targetConnector = connectors.find(connector => {
-                            const name = connector.name.toLowerCase();
-                            const id = connector.id.toLowerCase();
-                            return (
-                              name.includes('coinbase') ||
-                              id.includes('coinbase') ||
-                              (name.includes('injected') && name.includes('coinbase'))
-                            );
-                          });
-                        }
-                        
-                        if (targetConnector) {
-                          setConnectionStatus(`Connecting to ${walletType}...`);
-                          
-                          try {
-                            setConnectionStatus(`🔄 Waiting for approval in Coinbase Wallet...`);
-                            await connect({ connector: targetConnector });
-                            // Don't set success message here - it will be set by the useEffect watching isConnected
-                          } catch (connectError) {
-                            console.error('Connection error:', connectError);
-                            const errorMessage = connectError instanceof Error ? connectError.message : "Failed to connect to wallet.";
-                            setConnectionStatus(`❌ Connection failed: ${errorMessage}`);
-                            toast({
-                              title: "Connection Failed",
-                              description: errorMessage,
-                              variant: "destructive",
-                            });
-                          }
-                        } else {
-                          setConnectionStatus(`No connector found for ${walletType}`);
-                          toast({
-                            title: "Connector Not Found",
-                            description: `No connector found for ${walletType}. Available: ${connectors.map(c => c.name).join(', ')}`,
-                            variant: "destructive",
-                          });
-                        }
-                      } catch (error) {
-                        console.error('Connection setup error:', error);
-                        const errorMessage = error instanceof Error ? error.message : "An error occurred while setting up connection.";
-                        setConnectionStatus(`Setup error: ${errorMessage}`);
-                        toast({
-                          title: "Connection Error",
-                          description: errorMessage,
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                    disabled={isPending}
-                    className="inline-flex items-center justify-center text-sm font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
-                    style={{
-                      backgroundColor: '#3B82F6',
-                      borderRadius: '9999px',
-                      padding: '12px 24px',
-                      minWidth: '120px',
-                    }}
-                  >
-                    {isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : (
-                      "Connect Wallet"
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* System Message Display - NEW SECTION BELOW BOTH BUTTONS */}
-              <div className="mt-4 text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200" style={{ maxWidth: '100%' }}>
-                <div className="text-sm font-medium" style={{ color: '#B45309' }}>
-                  System Message:
-                </div>
-                <div className="text-xs mt-1" style={{ color: '#92400E' }}>
-                  {connectionStatus || "Click 'Connect Wallet' to see wallet connection messages here"}
-                </div>
-                <div className="text-xs mt-1" style={{ color: '#6B7280' }}>
-                  This area will show the actual system messages that appear in the top-right corner
-                </div>
-              </div>
-            </>
-          )}
             </div>
-          </CustomModal>
-        </>
-  );
-}
-
-function WalletCard(props: {
-  id: string;
-  label: string;
-  desc: string;
-  icon: "warpcast" | "coinbase" | "metamask";
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const { id, label, desc, icon, selected, onSelect } = props;
-  return (
-    <label
-      htmlFor={id}
-      className={[
-        "group flex items-center cursor-pointer rounded-lg border p-3 transition-colors",
-        selected ? "border-blue-400 bg-blue-100" : "border-gray-300 hover:bg-gray-50",
-      ].join(" ")}
-      onClick={onSelect}
-    >
-      <input id={id} type="radio" name="wallet" className="sr-only" checked={selected} readOnly />
-      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 mr-3">
-        {icon === "warpcast" ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-          </svg>
-        ) : icon === "coinbase" ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-            <path d="M12 18V6" />
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-600">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5" />
-            <path d="M2 12l10 5 10-5" />
-          </svg>
-        )}
-      </div>
-      <div className="flex-1">
-        <p className="font-semibold text-sm" style={{ color: '#131212' }}>{label}</p>
-      </div>
-    </label>
+          )}
+        </div>
+      </CustomModal>
+    </>
   );
 }

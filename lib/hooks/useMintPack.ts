@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useAccount } from 'wagmi';
-import { nftContractConfig, generateSecureRandomCards } from '../contract';
+import { nftContractConfig } from '../contract';
 import { config } from '../config';
-import { mockContract } from '../mock-contract';
+// import { mockContract } from '../mock-contract';
 
 export interface MintPackResult {
   success: boolean;
