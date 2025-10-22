@@ -109,10 +109,13 @@ export default function WalletSelector() {
         >
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="12" fill="#0052FF"/>
-                <path d="M12 6.5L17.5 12L12 17.5L6.5 12L12 6.5Z" fill="white"/>
-              </svg>
+              <Image
+                src="/icons/coinbaseLogo.svg"
+                alt="Coinbase"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
             </div>
             <span className="text-base font-semibold text-gray-800">Coinbase Wallet</span>
           </div>
@@ -131,10 +134,13 @@ export default function WalletSelector() {
         >
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#8A63D2"/>
-                <path d="M12 7L7 9.5L12 12L17 9.5L12 7Z" fill="white"/>
-              </svg>
+              <Image
+                src="/icons/warpcast-transparent-purple.svg"
+                alt="Warpcast"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
             </div>
             <span className="text-base font-semibold text-gray-800">Warpcast Wallet</span>
           </div>
@@ -153,12 +159,13 @@ export default function WalletSelector() {
         >
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="12" fill="#F6851B"/>
-                <path d="M12 4L8 8L12 12L16 8L12 4Z" fill="white"/>
-                <circle cx="12" cy="12" r="3" fill="#F6851B"/>
-                <circle cx="12" cy="12" r="1" fill="white"/>
-              </svg>
+              <Image
+                src="/icons/MetaMask-icon-fox.svg"
+                alt="MetaMask"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
             </div>
             <span className="text-base font-semibold text-gray-800">MetaMask Wallet</span>
           </div>
