@@ -100,11 +100,12 @@ export default function WalletSelector() {
         <button
           onClick={() => handleWalletConnect('coinbase')}
           disabled={isLoading}
-          className={`w-full p-3 rounded-lg border-2 transition-all ${
+          className={`w-full p-3 border-2 transition-all ${
             walletType === 'coinbase'
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-blue-300 bg-white'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ borderRadius: '50px' }}
         >
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center bg-blue-100 rounded-full">
@@ -120,11 +121,12 @@ export default function WalletSelector() {
         <button
           onClick={() => handleWalletConnect('warpcast')}
           disabled={isLoading}
-          className={`w-full p-3 rounded-lg border-2 transition-all ${
+          className={`w-full p-3 border-2 transition-all ${
             walletType === 'warpcast'
               ? 'border-purple-500 bg-purple-50'
               : 'border-gray-300 hover:border-purple-300 bg-white'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ borderRadius: '50px' }}
         >
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center bg-purple-100 rounded-full">
@@ -140,11 +142,12 @@ export default function WalletSelector() {
         <button
           onClick={() => handleWalletConnect('metamask')}
           disabled={isLoading}
-          className={`w-full p-3 rounded-lg border-2 transition-all ${
+          className={`w-full p-3 border-2 transition-all ${
             walletType === 'metamask'
               ? 'border-orange-500 bg-orange-50'
               : 'border-gray-300 hover:border-orange-300 bg-white'
           } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          style={{ borderRadius: '50px' }}
         >
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center bg-orange-100 rounded-full">
@@ -158,7 +161,7 @@ export default function WalletSelector() {
       </div>
 
       {/* Price Panel */}
-      <div className="w-full mb-4 p-3 bg-white rounded-lg border-2 border-gray-300">
+      <div className="w-full mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-gray-400">
         <div className="text-center">
           <div className="text-sm font-semibold text-gray-800 mb-1">
             Pack Price: {useRealContract ? '0.001 ETH' : 'FREE (Gas only)'}
