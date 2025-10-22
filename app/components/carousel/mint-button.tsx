@@ -13,19 +13,10 @@ import { useMiniAppContext } from "../../../lib/hooks/useMiniAppContext";
 import { CustomModal } from "./custom-modal";
 
 type Wallet = "warpcast" | "coinbase" | "metamask";
-type Img = { id: number; src: string; alt: string };
 
 interface MintButtonProps {
-  /** Pools to draw from: exactly 1 random from each */
-  randomFrom: {
-    top: Img[];
-    mid: Img[];
-    bot: Img[];
-  };
   /** Custom button text */
   customButtonText?: string;
-  /** Show only selected pack (hide mid/bot) */
-  showOnlySelected?: boolean;
 }
 
 export default function MintButton({ customButtonText }: MintButtonProps) {
