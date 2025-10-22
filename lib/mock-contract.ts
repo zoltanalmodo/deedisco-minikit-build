@@ -32,7 +32,7 @@ export const mockContract = {
   },
   
   // Simulate getting balance
-  async balanceOf(_address: string): Promise<number> {
+  async balanceOf(): Promise<number> {
     return Math.floor(Math.random() * 10);
   }
 };

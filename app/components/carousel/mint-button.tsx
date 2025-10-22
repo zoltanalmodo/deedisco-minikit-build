@@ -66,6 +66,7 @@ export default function MintButton({ randomFrom, customButtonText }: MintButtonP
     } else {
       setIsWalletAuthenticated(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, address]);
 
   // Mini App context detection
@@ -73,7 +74,7 @@ export default function MintButton({ randomFrom, customButtonText }: MintButtonP
   
   // Minting state
   const [showOverlay, setShowOverlay] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
+  const [clickCount, setClickCount] = useState(0); // Used by reset overlay
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [transactionDetails, setTransactionDetails] = useState<{
     status: string;
@@ -283,13 +284,13 @@ export default function MintButton({ randomFrom, customButtonText }: MintButtonP
     }
   }, [open]);
 
-  // Generate random selection
-  const getRandomSelection = () => {
-    const top = randomFrom.top[Math.floor(Math.random() * randomFrom.top.length)];
-    const mid = randomFrom.mid[Math.floor(Math.random() * randomFrom.mid.length)];
-    const bot = randomFrom.bot[Math.floor(Math.random() * randomFrom.bot.length)];
-    return [top, mid, bot];
-  };
+  // Generate random selection (used by reset overlay)
+  // const getRandomSelection = () => {
+  //   const top = randomFrom.top[Math.floor(Math.random() * randomFrom.top.length)];
+  //   const mid = randomFrom.mid[Math.floor(Math.random() * randomFrom.mid.length)];
+  //   const bot = randomFrom.bot[Math.floor(Math.random() * randomFrom.bot.length)];
+  //   return [top, mid, bot];
+  // };
 
   // const [selectedPack, setSelectedPack] = useState<Img[]>([]);
 
