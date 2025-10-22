@@ -28,7 +28,7 @@ interface MintButtonProps {
   showOnlySelected?: boolean;
 }
 
-export default function MintButton({ randomFrom, customButtonText }: MintButtonProps) {
+export default function MintButton({ customButtonText }: MintButtonProps) {
   const { toast } = useToast();
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
@@ -74,7 +74,7 @@ export default function MintButton({ randomFrom, customButtonText }: MintButtonP
   
   // Minting state
   const [showOverlay, setShowOverlay] = useState(false);
-  const [clickCount, setClickCount] = useState(0); // Used by reset overlay
+  const [, setClickCount] = useState(0); // Used by reset overlay
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [transactionDetails, setTransactionDetails] = useState<{
     status: string;
