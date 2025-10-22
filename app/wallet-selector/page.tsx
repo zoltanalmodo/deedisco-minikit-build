@@ -108,9 +108,10 @@ export default function WalletSelector() {
           style={{ borderRadius: '50px' }}
         >
           <div className="flex items-center">
-            <div className="w-8 h-8 mr-3 flex items-center justify-center bg-blue-100 rounded-full">
-              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
+            <div className="w-8 h-8 mr-3 flex items-center justify-center">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="12" fill="#0052FF"/>
+                <path d="M12 6.5L17.5 12L12 17.5L6.5 12L12 6.5Z" fill="white"/>
               </svg>
             </div>
             <span className="text-base font-semibold text-gray-800">Coinbase Wallet</span>
@@ -129,9 +130,10 @@ export default function WalletSelector() {
           style={{ borderRadius: '50px' }}
         >
           <div className="flex items-center">
-            <div className="w-8 h-8 mr-3 flex items-center justify-center bg-purple-100 rounded-full">
-              <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <div className="w-8 h-8 mr-3 flex items-center justify-center">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" fill="#8A63D2"/>
+                <path d="M12 7L7 9.5L12 12L17 9.5L12 7Z" fill="white"/>
               </svg>
             </div>
             <span className="text-base font-semibold text-gray-800">Warpcast Wallet</span>
@@ -150,9 +152,12 @@ export default function WalletSelector() {
           style={{ borderRadius: '50px' }}
         >
           <div className="flex items-center">
-            <div className="w-8 h-8 mr-3 flex items-center justify-center bg-orange-100 rounded-full">
-              <svg className="w-5 h-5 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <div className="w-8 h-8 mr-3 flex items-center justify-center">
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="12" fill="#F6851B"/>
+                <path d="M12 4L8 8L12 12L16 8L12 4Z" fill="white"/>
+                <circle cx="12" cy="12" r="3" fill="#F6851B"/>
+                <circle cx="12" cy="12" r="1" fill="white"/>
               </svg>
             </div>
             <span className="text-base font-semibold text-gray-800">MetaMask Wallet</span>
@@ -161,7 +166,7 @@ export default function WalletSelector() {
       </div>
 
       {/* Price Panel */}
-      <div className="w-full mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-gray-400">
+      <div className="w-full mb-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-gray-300">
         <div className="text-center">
           <div className="text-sm font-semibold text-gray-800 mb-1">
             Pack Price: {useRealContract ? '0.001 ETH' : 'FREE (Gas only)'}
