@@ -268,7 +268,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                   <button
                     type="button"
                     onClick={handleDisconnect}
-                    className="w-full inline-flex items-center justify-center text-sm font-semibold text-red-600 bg-white border-2 border-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full inline-flex items-center justify-center text-base font-semibold text-red-600 bg-white border-2 border-red-600 hover:bg-red-50 transition-colors"
                     style={{
                       borderRadius: '50px',
                       paddingTop: '10px',
@@ -284,7 +284,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
               <div className="flex gap-3">
                 <button
                   onClick={handleCloseModal}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center text-base font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
@@ -297,7 +297,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
                 <button
                   onClick={handleMint}
                   disabled={isLoading || !isConnected || (isDev && !isMiniApp && !walletType)}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
+                  className="flex-1 inline-flex items-center justify-center text-base font-semibold text-white bg-black hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
@@ -386,7 +386,7 @@ export default function MintButton({ customButtonText }: MintButtonProps) {
               <div className="flex gap-3">
                 <button
                   onClick={handleCloseModal}
-                  className="flex-1 inline-flex items-center justify-center text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center text-base font-semibold text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 transition-colors"
                   style={{
                     borderRadius: '50px',
                     paddingTop: '12px',
