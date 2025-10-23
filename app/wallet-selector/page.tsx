@@ -42,6 +42,9 @@ function WalletSelectorContent() {
 
   // Detect if running in Farcaster/Warpcast Mini App
   useEffect(() => {
+    // Only run on client side to prevent hydration issues
+    if (typeof window === 'undefined') return;
+    
     const detectMiniApp = () => {
       // Check for Farcaster Mini App environment
       const isFarcasterMiniApp = Boolean(
@@ -50,9 +53,8 @@ function WalletSelectorContent() {
         window.navigator.userAgent.includes('Farcaster') ||
         window.navigator.userAgent.includes('Warpcast') ||
         // Check for Mini App specific APIs
-        (typeof window !== 'undefined' && 
         ((window as unknown as { farcaster?: unknown }).farcaster ||
-        (window as unknown as { warpcast?: unknown }).warpcast))
+        (window as unknown as { warpcast?: unknown }).warpcast)
       );
       
       setIsMiniApp(isFarcasterMiniApp);
@@ -64,6 +66,9 @@ function WalletSelectorContent() {
 
   // Verify actual connection status and network
   useEffect(() => {
+    // Only run on client side to prevent hydration issues
+    if (typeof window === 'undefined') return;
+    
     const verifyConnection = async () => {
       if (isConnected && address) {
         try {
@@ -219,7 +224,12 @@ function WalletSelectorContent() {
 
   // Handle minting
   const handleMint = async () => {
-    if (!isActuallyConnected) return;
+    console.log('🎯 handleMint called - isActuallyConnected:', isActuallyConnected, 'isConnected:', isConnected, 'address:', address, 'useRealContract:', useRealContract);
+    
+    if (!isActuallyConnected && !(isConnected && address)) {
+      console.log('❌ Not connected - cannot mint');
+      return;
+    }
     
     console.log('🎯 Minting NFTs - isConnected:', isConnected, 'address:', address, 'useRealContract:', useRealContract);
     
@@ -555,10 +565,10 @@ function WalletSelectorContent() {
       <div className="w-full mb-0 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-gray-300">
         <div className="text-center">
           <div className="text-sm font-semibold text-gray-800 mb-1">
-            Pack Price: {useRealContract ? '0.001 ETH' : 'FREE (Gas only)'}
+            Pack Price: FREE (Gas only)
           </div>
           <div className="text-xs text-gray-600">
-            {useRealContract ? 'Real payment required' : 'Mock payment (testing)'}
+            No payment required - testing NFT minting
           </div>
         </div>
       </div>
@@ -590,10 +600,23 @@ function WalletSelectorContent() {
           </button>
         </Link>
         
-        {((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia) ? (
+        {(() => {
+          console.log('🔍 Button condition check:', {
+            isActuallyConnected,
+            isConnected,
+            address,
+            isOnBaseSepolia,
+            condition: ((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia)
+          });
+          return ((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia);
+        })() ? (
           <button
-            onClick={handleMint}
-            disabled={isLoading || isMinting}
+            onClick={() => {
+              console.log('🖱️ Buy Pack button clicked!');
+              alert('Button clicked!'); // Simple test
+              handleMint();
+            }}
+            disabled={false}
             className="text-white font-bold transition-colors text-base"
             style={{ 
               backgroundColor: '#000000',

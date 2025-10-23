@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { nftContractConfig } from '../contract';
 import { config } from '../config';
@@ -164,7 +164,7 @@ export function useMintPack() {
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   
   const { address } = useAccount();
-  const { sendTransaction, data: hash, error, isPending } = useSendTransaction();
+  const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
@@ -181,10 +181,13 @@ export function useMintPack() {
 
     setIsLoading(true);
     setResult(null);
+    
+    // Clear any previous transaction state
+    console.log('🧹 Clearing previous transaction state...');
 
     try {
       // Use real contract minting with payment
-      console.log('🔄 Calling sendTransaction with payment of 0.001 ETH');
+      console.log('🔄 Calling mintPack contract function with payment of 0.001 ETH');
       console.log('📋 Contract address:', nftContractConfig.address);
       
       // Generate cards based on pack type
@@ -210,16 +213,25 @@ export function useMintPack() {
       
       setSelectedCards(selectedCards);
       
-      // TEMPORARY: Use simple ETH transfer to test wallet connection
-      // TODO: Add back contract interaction once basic transfer works
-      sendTransaction({
-        to: address, // Send to user's own address for testing
-        value: BigInt("10000000000000"), // 0.00001 ETH in wei (very small amount)
-        // Let MetaMask handle gas estimation automatically
-        // No data field for simple ETH transfer
+      // REAL NFT MINTING - Call the actual contract
+      console.log('🔥 REAL NFT MINTING - Calling mintPack contract function');
+      console.log('📋 Contract address:', nftContractConfig.address);
+      
+      // REAL NFT MINTING - Call the actual mintPack function
+      console.log('🔥 REAL NFT MINTING - Calling mintPack contract function');
+      console.log('📋 Contract address:', nftContractConfig.address);
+      console.log('📋 Function: mintPack');
+      console.log('📋 Args:', [address, 3]);
+      
+      writeContract({
+        address: nftContractConfig.address,
+        abi: nftContractConfig.abi,
+        functionName: 'mintPack',
+        args: [address, BigInt(3)], // mint 3 NFTs to user's address
+        // NO PAYMENT - FREE MINTING
       });
 
-      console.log('✅ Transaction submitted! Hash:', hash);
+      console.log('✅ NFT minting transaction initiated!');
 
       // Wait for transaction confirmation
       console.log('⏳ Waiting for transaction confirmation...');

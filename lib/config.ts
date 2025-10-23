@@ -5,7 +5,7 @@ export const config = {
   rpcUrl: process.env.NEXT_PUBLIC_BASE_TESTNET_RPC || 'https://sepolia.base.org',
   
   // NFT Contract Configuration
-  nftContractAddress: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x60086A950F0A3437d2fd98e497AA574010352238', // Deployed on BASE Sepolia with payment
+  nftContractAddress: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0xb003736Ea1316E151d705dC94d91c251B5015E06', // FREE MINTING - No payment required!
   
   // IPFS Configuration
   ipfsGateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://ipfs.io/ipfs/',
@@ -17,7 +17,7 @@ export const config = {
   // Metadata Configuration
   contractName: 'Deedisco Minikit Cards',
   contractSymbol: 'DMC',
-  baseTokenURI: 'https://ipfs.io/ipfs/QmYourMetadataHash/', // Will be updated after deployment
+  baseTokenURI: process.env.NEXT_PUBLIC_URL ? `${process.env.NEXT_PUBLIC_URL}/api/nft/` : 'https://deedisco-minikit-app.vercel.app/api/nft/',
 } as const;
 
 // Card metadata structure

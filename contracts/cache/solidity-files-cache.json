@@ -609,6 +609,45 @@
       "artifacts": [
         "IERC721Receiver"
       ]
+    },
+    "/Users/zoltanalmodo/Desktop/CODE_projects/deedisco-minikit-build/contracts/contracts/FreeNFT.sol": {
+      "lastModificationDate": 1761260206033,
+      "contentHash": "8a32246e26a9af31c4e3100251108f13",
+      "sourceName": "contracts/FreeNFT.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FreeNFT"
+      ]
     }
   }
 }
