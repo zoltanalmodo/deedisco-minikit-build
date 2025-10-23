@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Pack {
@@ -67,10 +68,11 @@ export default function PackCarousel({
               }`}
             >
               <div className="relative h-full w-full">
-                <img
+                <Image
                   src={pack.src}
                   alt={pack.alt}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                   onError={(e) => {
                     console.error('Image failed to load:', pack.src, e);
                   }}

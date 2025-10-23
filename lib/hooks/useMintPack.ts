@@ -38,7 +38,7 @@ export function useMintPack() {
         address: nftContractConfig.address,
         functionName: 'mintPack',
         args: [address, BigInt(config.cardsPerPack)],
-        value: BigInt(1000000000000000), // 0.001 ETH in wei
+        value: 1000000000000000n, // 0.001 ETH in wei (using bigint literal)
       });
       
       writeContract({
@@ -46,7 +46,7 @@ export function useMintPack() {
         abi: nftContractConfig.abi,
         functionName: 'mintPack',
         args: [address, BigInt(config.cardsPerPack)],
-        value: BigInt(1000000000000000), // 0.001 ETH in wei
+        value: 1000000000000000n, // 0.001 ETH in wei (using bigint literal)
       });
 
       console.log('✅ Transaction submitted! Hash:', hash);
