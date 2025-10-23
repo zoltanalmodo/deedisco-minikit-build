@@ -37,7 +37,7 @@ function WalletSelectorContent() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const { mintPack, isLoading: isMinting, isSuccess, error } = useMintPack();
+  const { mintPack, isLoading: isMinting, isSuccess, error, selectedCards } = useMintPack();
 
   // Verify actual connection status and network
   useEffect(() => {
@@ -98,28 +98,7 @@ function WalletSelectorContent() {
     verifyConnection();
   }, [isConnected, address]);
 
-  // Function to fetch NFT metadata
-  const fetchNFTMetadata = async (tokenId: number) => {
-    try {
-      // For now, we'll use placeholder data since we need to implement proper metadata fetching
-      // In a real implementation, you'd fetch from your metadata API
-      const metadata = {
-        tokenId,
-        image: `/carousel${Math.floor(Math.random() * 3) + 1}-image${Math.floor(Math.random() * 8) + 1}.jpg`,
-        name: `Deedisco Card #${tokenId}`,
-        description: `A unique Deedisco trading card with special properties.`
-      };
-      return metadata;
-    } catch (error) {
-      console.error('Error fetching NFT metadata:', error);
-      return {
-        tokenId,
-        image: '/pack-all-random.png', // Fallback image
-        name: `Deedisco Card #${tokenId}`,
-        description: 'A unique Deedisco trading card.'
-      };
-    }
-  };
+  // Function to fetch NFT metadata - REMOVED as we now use selectedCards directly
 
   // Watch for transaction confirmation
   useEffect(() => {
@@ -127,20 +106,39 @@ function WalletSelectorContent() {
     if (mintingState === 'minting' && isSuccess) {
       console.log('✅ Transaction confirmed! NFTs are now in wallet');
       
-      // Fetch NFT metadata for the minted tokens
+      // Fetch NFT metadata for the minted tokens using selected cards
       const fetchMintedNFTs = async () => {
         try {
-          // For now, we'll use placeholder token IDs since we need to get them from the transaction
-          // In a real implementation, you'd parse the transaction receipt to get actual token IDs
-          const tokenIds = [1, 2, 3]; // Placeholder - should be actual token IDs from transaction
-          
-          const nftPromises = tokenIds.map(tokenId => fetchNFTMetadata(tokenId));
-          const nftData = await Promise.all(nftPromises);
-          
-          setMintedNFTs(nftData);
-          console.log('🎨 Fetched NFT metadata:', nftData);
+          if (selectedCards && selectedCards.length > 0) {
+            console.log('🎨 Using selected cards for NFT metadata:', selectedCards);
+            
+            const nftPromises = selectedCards.map((cardIndex, i) => {
+              // Map card index to actual image path
+              const carousel = Math.floor(cardIndex / 8) + 1;
+              const position = (cardIndex % 8) + 1;
+              const imagePath = `/carousel${carousel}-image${position}.jpg`;
+              
+              return {
+                tokenId: i + 1,
+                image: imagePath,
+                name: `Deedisco Card #${cardIndex + 1}`,
+                description: `A unique trading card from carousel ${carousel}, position ${position}.`
+              };
+            });
+            
+            setMintedNFTs(nftPromises);
+            console.log('🎨 Generated NFT metadata from selected cards:', nftPromises);
+          } else {
+            // Fallback to random cards if selectedCards not available
+            console.log('⚠️ No selected cards available, using fallback');
+            setMintedNFTs([
+              { tokenId: 1, image: '/carousel1-image1.jpg', name: 'Deedisco Card #1', description: 'A unique trading card.' },
+              { tokenId: 2, image: '/carousel2-image1.jpg', name: 'Deedisco Card #2', description: 'A unique trading card.' },
+              { tokenId: 3, image: '/carousel3-image1.jpg', name: 'Deedisco Card #3', description: 'A unique trading card.' }
+            ]);
+          }
         } catch (error) {
-          console.error('❌ Error fetching NFT metadata:', error);
+          console.error('❌ Error generating NFT metadata:', error);
           // Set fallback data
           setMintedNFTs([
             { tokenId: 1, image: '/carousel1-image1.jpg', name: 'Deedisco Card #1', description: 'A unique trading card.' },
@@ -156,7 +154,7 @@ function WalletSelectorContent() {
       
       // Keep connected after successful minting - let user decide when to disconnect
     }
-  }, [mintingState, isSuccess, disconnect]);
+  }, [mintingState, isSuccess, disconnect, isMinting, selectedCards]);
 
   // Handle transaction errors (user rejection, network issues, etc.)
   useEffect(() => {
@@ -213,7 +211,7 @@ function WalletSelectorContent() {
       setMintingState('minting');
       
       try {
-        const result = await mintPack();
+        const result = await mintPack(selectedPackIndex);
         if (result.success) {
           console.log('✅ Transaction submitted, waiting for confirmation...');
           // Don't set success here - wait for useEffect to detect isSuccess
