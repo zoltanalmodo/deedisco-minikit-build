@@ -27,6 +27,12 @@ function WalletSelectorContent() {
     payment?: string;
     error?: string;
   } | null>(null);
+  const [mintedNFTs, setMintedNFTs] = useState<Array<{
+    tokenId: number;
+    image: string;
+    name: string;
+    description: string;
+  }> | null>(null);
   const [isActuallyConnected, setIsActuallyConnected] = useState(false);
   const [isOnBaseSepolia, setIsOnBaseSepolia] = useState(false);
   const [networkName, setNetworkName] = useState<string>('');
@@ -99,10 +105,59 @@ function WalletSelectorContent() {
     verifyConnection();
   }, [isConnected, address]);
 
+  // Function to fetch NFT metadata
+  const fetchNFTMetadata = async (tokenId: number) => {
+    try {
+      // For now, we'll use placeholder data since we need to implement proper metadata fetching
+      // In a real implementation, you'd fetch from your metadata API
+      const metadata = {
+        tokenId,
+        image: `/carousel${Math.floor(Math.random() * 3) + 1}-image${Math.floor(Math.random() * 8) + 1}.jpg`,
+        name: `Deedisco Card #${tokenId}`,
+        description: `A unique Deedisco trading card with special properties.`
+      };
+      return metadata;
+    } catch (error) {
+      console.error('Error fetching NFT metadata:', error);
+      return {
+        tokenId,
+        image: '/pack-all-random.png', // Fallback image
+        name: `Deedisco Card #${tokenId}`,
+        description: 'A unique Deedisco trading card.'
+      };
+    }
+  };
+
   // Watch for transaction confirmation
   useEffect(() => {
     if (mintingState === 'minting' && isSuccess) {
       console.log('✅ Transaction confirmed! NFTs are now in wallet');
+      
+      // Fetch NFT metadata for the minted tokens
+      const fetchMintedNFTs = async () => {
+        try {
+          // For now, we'll use placeholder token IDs since we need to get them from the transaction
+          // In a real implementation, you'd parse the transaction receipt to get actual token IDs
+          const tokenIds = [1, 2, 3]; // Placeholder - should be actual token IDs from transaction
+          
+          const nftPromises = tokenIds.map(tokenId => fetchNFTMetadata(tokenId));
+          const nftData = await Promise.all(nftPromises);
+          
+          setMintedNFTs(nftData);
+          console.log('🎨 Fetched NFT metadata:', nftData);
+        } catch (error) {
+          console.error('❌ Error fetching NFT metadata:', error);
+          // Set fallback data
+          setMintedNFTs([
+            { tokenId: 1, image: '/carousel1-image1.jpg', name: 'Deedisco Card #1', description: 'A unique trading card.' },
+            { tokenId: 2, image: '/carousel2-image1.jpg', name: 'Deedisco Card #2', description: 'A unique trading card.' },
+            { tokenId: 3, image: '/carousel3-image1.jpg', name: 'Deedisco Card #3', description: 'A unique trading card.' }
+          ]);
+        }
+      };
+      
+      fetchMintedNFTs();
+      
       setMintingState('success');
       setMintResult({
         transactionHash: 'Confirmed',
@@ -271,17 +326,38 @@ function WalletSelectorContent() {
               Your NFTs are now in your wallet!
             </div>
             
-            {/* Show 3 NFT images */}
+            {/* Show actual NFT images */}
             <div className="flex justify-center gap-2 mb-4">
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-gray-600">NFT #1</span>
-              </div>
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-gray-600">NFT #2</span>
-              </div>
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-gray-600">NFT #3</span>
-              </div>
+              {mintedNFTs ? (
+                mintedNFTs.map((nft) => (
+                  <div key={nft.tokenId} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-300">
+                    <Image
+                      src={nft.image}
+                      alt={nft.name}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Fallback to placeholder if image fails to load
+                        (e.target as HTMLImageElement).src = '/pack-all-random.png';
+                      }}
+                    />
+                  </div>
+                ))
+              ) : (
+                // Fallback placeholders while loading
+                <>
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Loading...</span>
+                  </div>
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Loading...</span>
+                  </div>
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span className="text-xs text-gray-600">Loading...</span>
+                  </div>
+                </>
+              )}
             </div>
             
             <div className="text-sm text-green-700 mb-1">
