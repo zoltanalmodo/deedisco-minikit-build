@@ -39,11 +39,11 @@ export function useMintPack() {
       console.log('🔄 Calling sendTransaction with payment of 0.001 ETH');
       console.log('📋 Contract address:', nftContractConfig.address);
       
-      // Try a simple ETH transfer to the contract address first
+      // Try a simple ETH transfer to the user's own address first
       sendTransaction({
-        to: nftContractConfig.address,
+        to: address, // Send to the connected address for a simple transfer test
         value: BigInt("1000000000000000"), // 0.001 ETH in wei
-        data: '0x', // Empty data for simple ETH transfer
+        // No 'data' field for a simple ETH transfer
       });
 
       console.log('✅ Transaction submitted! Hash:', hash);
