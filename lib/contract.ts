@@ -32,7 +32,7 @@ export const nftContractAbi = [
     "outputs": [
       { "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
