@@ -31,10 +31,10 @@ function generateGuaranteedTopPack(totalCards: number, cardsPerPack: number): nu
   const selectedCards: number[] = [];
   const availableCards = Array.from({ length: totalCards }, (_, i) => i);
   
-  // First, guarantee at least 1 from carousel 1 (cards 0-7)
+  // First, guarantee at least 1 from carousel 1 (cards 0-7) - MUST be in position 0 (top)
   const topCards = availableCards.filter(card => card < 8);
   const randomTopCard = topCards[Math.floor(Math.random() * topCards.length)];
-  selectedCards.push(randomTopCard);
+  selectedCards[0] = randomTopCard; // Top card MUST be a top card
   availableCards.splice(availableCards.indexOf(randomTopCard), 1);
   
   // Fill remaining slots with any available cards
@@ -52,17 +52,19 @@ function generateGuaranteedMiddlePack(totalCards: number, cardsPerPack: number):
   const selectedCards: number[] = [];
   const availableCards = Array.from({ length: totalCards }, (_, i) => i);
   
-  // First, guarantee at least 1 from carousel 2 (cards 8-15)
+  // First, guarantee at least 1 from carousel 2 (cards 8-15) - MUST be in position 1 (middle)
   const middleCards = availableCards.filter(card => card >= 8 && card < 16);
   const randomMiddleCard = middleCards[Math.floor(Math.random() * middleCards.length)];
-  selectedCards.push(randomMiddleCard);
+  selectedCards[1] = randomMiddleCard; // Middle card MUST be a middle card
   availableCards.splice(availableCards.indexOf(randomMiddleCard), 1);
   
   // Fill remaining slots with any available cards
-  for (let i = 1; i < cardsPerPack; i++) {
-    const randomIndex = Math.floor(Math.random() * availableCards.length);
-    const selectedCard = availableCards.splice(randomIndex, 1)[0];
-    selectedCards.push(selectedCard);
+  for (let i = 0; i < cardsPerPack; i++) {
+    if (selectedCards[i] === undefined) {
+      const randomIndex = Math.floor(Math.random() * availableCards.length);
+      const selectedCard = availableCards.splice(randomIndex, 1)[0];
+      selectedCards[i] = selectedCard;
+    }
   }
   
   return selectedCards;
@@ -73,17 +75,19 @@ function generateGuaranteedBottomPack(totalCards: number, cardsPerPack: number):
   const selectedCards: number[] = [];
   const availableCards = Array.from({ length: totalCards }, (_, i) => i);
   
-  // First, guarantee at least 1 from carousel 3 (cards 16-23)
+  // First, guarantee at least 1 from carousel 3 (cards 16-23) - MUST be in position 2 (bottom)
   const bottomCards = availableCards.filter(card => card >= 16);
   const randomBottomCard = bottomCards[Math.floor(Math.random() * bottomCards.length)];
-  selectedCards.push(randomBottomCard);
+  selectedCards[2] = randomBottomCard; // Bottom card MUST be a bottom card
   availableCards.splice(availableCards.indexOf(randomBottomCard), 1);
   
   // Fill remaining slots with any available cards
-  for (let i = 1; i < cardsPerPack; i++) {
-    const randomIndex = Math.floor(Math.random() * availableCards.length);
-    const selectedCard = availableCards.splice(randomIndex, 1)[0];
-    selectedCards.push(selectedCard);
+  for (let i = 0; i < cardsPerPack; i++) {
+    if (selectedCards[i] === undefined) {
+      const randomIndex = Math.floor(Math.random() * availableCards.length);
+      const selectedCard = availableCards.splice(randomIndex, 1)[0];
+      selectedCards[i] = selectedCard;
+    }
   }
   
   return selectedCards;
