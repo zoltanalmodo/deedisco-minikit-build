@@ -11,7 +11,13 @@ export default function WalletSelector() {
   const [isLoading, setIsLoading] = useState(false);
   const [useRealContract, setUseRealContract] = useState(false);
   const [mintingState, setMintingState] = useState<'idle' | 'minting' | 'confirming' | 'success' | 'error'>('idle');
-  const [mintResult, setMintResult] = useState<any>(null);
+  const [mintResult, setMintResult] = useState<{
+    hash?: string;
+    transactionHash?: string;
+    nftsMinted?: string;
+    payment?: string;
+    error?: string;
+  } | null>(null);
   
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
