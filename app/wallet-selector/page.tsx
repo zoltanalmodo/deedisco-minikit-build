@@ -427,7 +427,7 @@ export default function WalletSelector() {
             onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#0a0a0a'}
             onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#000000'}
           >
-            {isLoading ? 'Connecting...' : mintingState === 'minting' ? 'Minting NFTs - confirm wallet request...' : 'Buy Pack'}
+            {isLoading ? 'Connecting...' : 'Buy Pack'}
           </button>
         ) : walletType ? (
           <button
