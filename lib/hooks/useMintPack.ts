@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { nftContractConfig } from '../contract';
-import { config } from '../config';
 // import { mockContract } from '../mock-contract';
 
 export interface MintPackResult {
@@ -17,7 +16,7 @@ export function useMintPack() {
   const [result, setResult] = useState<MintPackResult | null>(null);
   
   const { address } = useAccount();
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
+  const { sendTransaction, data: hash, error, isPending } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
@@ -37,14 +36,14 @@ export function useMintPack() {
 
     try {
       // Use real contract minting with payment
-      console.log('🔄 Calling writeContract with payment of 0.001 ETH');
+      console.log('🔄 Calling sendTransaction with payment of 0.001 ETH');
+      console.log('📋 Contract address:', nftContractConfig.address);
       
-      writeContract({
-        address: nftContractConfig.address,
-        abi: nftContractConfig.abi,
-        functionName: 'mintPack',
-        args: [address, BigInt(config.cardsPerPack)],
+      // Try a simple ETH transfer to the contract address first
+      sendTransaction({
+        to: nftContractConfig.address,
         value: BigInt("1000000000000000"), // 0.001 ETH in wei
+        data: '0x', // Empty data for simple ETH transfer
       });
 
       console.log('✅ Transaction submitted! Hash:', hash);
