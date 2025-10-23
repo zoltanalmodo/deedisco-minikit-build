@@ -82,7 +82,7 @@ export default function WalletSelector() {
       } catch (error) {
         console.error('❌ REAL MINTING ERROR:', error);
         setMintingState('error');
-        setMintResult({ error: error });
+        setMintResult({ error: error instanceof Error ? error.message : String(error) });
       }
     } else {
       // MOCK MINTING
