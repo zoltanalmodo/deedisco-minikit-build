@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
 import { useAccount } from 'wagmi';
-import { encodeFunctionData } from 'viem';
 import { nftContractConfig } from '../contract';
 import { config } from '../config';
 // import { mockContract } from '../mock-contract';
@@ -142,15 +141,12 @@ export function useMintPack() {
       
       setSelectedCards(selectedCards);
       
-      // Use contract minting with proper data
+      // TEMPORARY: Use simple ETH transfer to test wallet connection
+      // TODO: Add back contract interaction once basic transfer works
       sendTransaction({
-        to: nftContractConfig.address,
+        to: address, // Send to user's own address for testing
         value: BigInt("1000000000000000"), // 0.001 ETH in wei
-        data: encodeFunctionData({
-          abi: nftContractConfig.abi,
-          functionName: 'mintPack',
-          args: [address, BigInt(config.cardsPerPack)],
-        }),
+        // No data field for simple ETH transfer
       });
 
       console.log('✅ Transaction submitted! Hash:', hash);
