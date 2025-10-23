@@ -55,7 +55,9 @@ function WalletSelectorContent() {
           }
         } catch (error) {
           console.log('❌ Connection verification failed:', error);
-          setIsActuallyConnected(false);
+          // If verification fails, but wagmi says connected, assume it's connected
+          console.log('⚠️ Falling back to wagmi connection status');
+          setIsActuallyConnected(isConnected);
         }
       } else {
         console.log('🔌 Not connected:', { isConnected, address });
@@ -445,7 +447,7 @@ function WalletSelectorContent() {
       </div>
 
       {/* Disconnect Wallet Button - Show when connected */}
-      {isActuallyConnected && (
+      {(isActuallyConnected || (isConnected && address)) && (
         <div className="w-full mb-4">
           <button
             onClick={() => {
@@ -498,7 +500,7 @@ function WalletSelectorContent() {
           </button>
         </Link>
         
-        {isActuallyConnected ? (
+        {(isActuallyConnected || (isConnected && address)) ? (
           <button
             onClick={handleMint}
             disabled={isLoading || isMinting}
