@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract DeediscoMinikit is ERC721, Ownable {
     uint256 private _tokenIdCounter;
     string private _baseTokenURI;
+    uint256 public constant MINT_PRICE = 0.001 ether; // 0.001 ETH per pack
     
     constructor(string memory baseURI) ERC721("Deedisco Minikit Cards", "DMC") Ownable(msg.sender) {
         _baseTokenURI = baseURI;
@@ -16,8 +17,9 @@ contract DeediscoMinikit is ERC721, Ownable {
         return _baseTokenURI;
     }
     
-    function mintPack(address to, uint256 quantity) public onlyOwner returns (uint256[] memory) {
+    function mintPack(address to, uint256 quantity) public payable returns (uint256[] memory) {
         require(quantity > 0 && quantity <= 10, "Invalid quantity");
+        require(msg.value >= MINT_PRICE, "Insufficient payment");
         
         uint256[] memory tokenIds = new uint256[](quantity);
         
@@ -33,5 +35,9 @@ contract DeediscoMinikit is ERC721, Ownable {
     
     function totalSupply() public view returns (uint256) {
         return _tokenIdCounter;
+    }
+    
+    function withdraw() public onlyOwner {
+        payable(owner()).transfer(address(this).balance);
     }
 }
