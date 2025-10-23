@@ -336,6 +336,7 @@ function WalletSelectorContent() {
       <div className="w-full mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
         <div>Debug: isConnected={String(isConnected)}, isActuallyConnected={String(isActuallyConnected)}</div>
         <div>Address: {address || 'None'}</div>
+        <div>Wallet Type: {walletType || 'None'}</div>
       </div>
 
       {/* Use Real Contract Checkbox */}
@@ -442,6 +443,35 @@ function WalletSelectorContent() {
           </div>
         </div>
       </div>
+
+      {/* Disconnect Wallet Button - Show when connected */}
+      {isActuallyConnected && (
+        <div className="w-full mb-4">
+          <button
+            onClick={() => {
+              disconnect();
+              setWalletType(null);
+              console.log('🔌 Wallet disconnected by user');
+            }}
+            className="w-full font-bold transition-colors text-base"
+            style={{ 
+              backgroundColor: '#DC2626',
+              borderRadius: '25px',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+              fontWeight: 700,
+              paddingTop: '12px',
+              paddingBottom: '12px',
+              paddingLeft: '24px',
+              paddingRight: '24px',
+              color: '#FFFFFF'
+            }}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#B91C1C'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#DC2626'}
+          >
+            Disconnect Wallet
+          </button>
+        </div>
+      )}
 
       {/* Action Buttons - SIDE BY SIDE - Perfect spacing achieved */}
       <div className="flex justify-between w-full mt-3 gap-3">
