@@ -29,6 +29,7 @@ function WalletSelectorContent() {
   const [isActuallyConnected, setIsActuallyConnected] = useState(false);
   const [isOnBaseSepolia, setIsOnBaseSepolia] = useState(false);
   const [networkName, setNetworkName] = useState<string>('');
+  const [isMiniApp, setIsMiniApp] = useState(false);
   
   const searchParams = useSearchParams();
   const selectedPackIndex = parseInt(searchParams.get('pack') || '0');
@@ -38,6 +39,28 @@ function WalletSelectorContent() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { mintPack, isLoading: isMinting, isSuccess, error, selectedCards } = useMintPack();
+
+  // Detect if running in Farcaster/Warpcast Mini App
+  useEffect(() => {
+    const detectMiniApp = () => {
+      // Check for Farcaster Mini App environment
+      const isFarcasterMiniApp = Boolean(
+        window.location.hostname.includes('warpcast.com') ||
+        window.location.hostname.includes('farcaster.xyz') ||
+        window.navigator.userAgent.includes('Farcaster') ||
+        window.navigator.userAgent.includes('Warpcast') ||
+        // Check for Mini App specific APIs
+        (typeof window !== 'undefined' && 
+        ((window as unknown as { farcaster?: unknown }).farcaster ||
+        (window as unknown as { warpcast?: unknown }).warpcast))
+      );
+      
+      setIsMiniApp(isFarcasterMiniApp);
+      console.log('🔍 Mini App detection:', { isFarcasterMiniApp, userAgent: window.navigator.userAgent });
+    };
+
+    detectMiniApp();
+  }, []);
 
   // Verify actual connection status and network
   useEffect(() => {
@@ -454,6 +477,7 @@ function WalletSelectorContent() {
             <div>Wallet Type: {walletType || 'None'}</div>
             <div>Network: {networkName || 'None'}</div>
             <div>Base Sepolia: {String(isOnBaseSepolia)}</div>
+            <div>Mini App Mode: {String(isMiniApp)}</div>
           </div>
 
       {/* Use Real Contract Checkbox */}
@@ -498,30 +522,32 @@ function WalletSelectorContent() {
           </div>
         </button>
 
-        {/* Warpcast Wallet */}
-        <button
-          onClick={() => handleWalletSelect('warpcast')}
-          disabled={isLoading}
-          className={`w-full p-3 border-2 transition-all ${
-            walletType === 'warpcast'
-              ? 'border-purple-500 bg-purple-50'
-              : 'border-gray-300 hover:border-purple-300 bg-white'
-          } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          style={{ borderRadius: '50px' }}
-        >
-          <div className="flex items-center">
-            <div className="w-8 h-8 mr-3 flex items-center justify-center">
-              <Image
-                src="/icons/warpcast-transparent-purple.svg"
-                alt="Warpcast"
-                width={24}
-                height={24}
-                className="w-6 h-6"
-              />
+        {/* Warpcast Wallet - Only show in Mini App mode */}
+        {isMiniApp && (
+          <button
+            onClick={() => handleWalletSelect('warpcast')}
+            disabled={isLoading}
+            className={`w-full p-3 border-2 transition-all ${
+              walletType === 'warpcast'
+                ? 'border-purple-500 bg-purple-50'
+                : 'border-gray-300 hover:border-purple-300 bg-white'
+            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{ borderRadius: '50px' }}
+          >
+            <div className="flex items-center">
+              <div className="w-8 h-8 mr-3 flex items-center justify-center">
+                <Image
+                  src="/icons/warpcast-transparent-purple.svg"
+                  alt="Warpcast"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+              </div>
+              <span className="text-base font-light text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>Farcaster / Warpcast Wallet</span>
             </div>
-            <span className="text-base font-light text-gray-800" style={{ fontFamily: 'Inter, sans-serif' }}>Farcaster / Warpcast Wallet</span>
-          </div>
-        </button>
+          </button>
+        )}
 
         {/* MetaMask Wallet */}
         <button
