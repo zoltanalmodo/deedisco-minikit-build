@@ -12,18 +12,83 @@ export interface MintPackResult {
   error?: string;
 }
 
-// Generate random cards without duplicates
+// Generate random cards without duplicates - ALL RANDOM PACK RULES
 function generateRandomCards(totalCards: number, cardsPerPack: number): number[] {
-  const selectedCards: number[] = [];
-  const availableCards = Array.from({ length: totalCards }, (_, i) => i);
+  // Only run on client side to prevent server-side rendering issues
+  if (typeof window === 'undefined') {
+    console.log('🔄 Server-side rendering: Using fallback card selection');
+    return [0, 1, 2]; // Fallback for server-side rendering
+  }
   
-  for (let i = 0; i < cardsPerPack; i++) {
-    const randomIndex = Math.floor(Math.random() * availableCards.length);
-    const selectedCard = availableCards.splice(randomIndex, 1)[0];
-    selectedCards.push(selectedCard);
+  let selectedCards: number[] = [];
+  let attempts = 0;
+  const maxAttempts = 100; // Prevent infinite loops
+  
+  do {
+    selectedCards = [];
+    const availableCards = Array.from({ length: totalCards }, (_, i) => i);
+    
+    // Generate 3 random cards
+    for (let i = 0; i < cardsPerPack; i++) {
+      const randomIndex = Math.floor(Math.random() * availableCards.length);
+      const selectedCard = availableCards.splice(randomIndex, 1)[0];
+      selectedCards.push(selectedCard);
+    }
+    
+    attempts++;
+    
+    // Check if we need to regenerate
+    const needsRegeneration = checkAllRandomPackRules(selectedCards);
+    
+    if (!needsRegeneration) {
+      break; // Rules satisfied, exit loop
+    }
+    
+  } while (attempts < maxAttempts);
+  
+  // If we hit max attempts, return the last generated set (fallback)
+  if (attempts >= maxAttempts) {
+    console.warn('⚠️ All Random Pack: Max attempts reached, using fallback selection');
   }
   
   return selectedCards;
+}
+
+// Check All Random Pack rules
+function checkAllRandomPackRules(selectedCards: number[]): boolean {
+  // Rule 1: All 3 images must be different numbers (not all image 1, image 4, etc.)
+  const imageNumbers = selectedCards.map(card => (card % 8) + 1); // Get image number (1-8)
+  const uniqueImageNumbers = new Set(imageNumbers);
+  
+  if (uniqueImageNumbers.size !== 3) {
+    console.log('❌ All Random Pack Rule 1 violated: Same image numbers detected', imageNumbers);
+    return true; // Needs regeneration
+  }
+  
+  // Rule 2: Cannot be exactly one top + one middle + one bottom
+  const carouselTypes = selectedCards.map(card => {
+    if (card < 8) return 'top';      // Carousel 1: cards 0-7
+    if (card < 16) return 'middle';   // Carousel 2: cards 8-15
+    return 'bottom';                  // Carousel 3: cards 16-23
+  });
+  
+  const hasTop = carouselTypes.includes('top');
+  const hasMiddle = carouselTypes.includes('middle');
+  const hasBottom = carouselTypes.includes('bottom');
+  
+  // If we have exactly one of each, it's a complete set (forbidden)
+  if (hasTop && hasMiddle && hasBottom) {
+    console.log('❌ All Random Pack Rule 2 violated: Complete set detected (top + middle + bottom)', carouselTypes);
+    return true; // Needs regeneration
+  }
+  
+  console.log('✅ All Random Pack rules satisfied:', {
+    imageNumbers,
+    carouselTypes,
+    uniqueImageNumbers: Array.from(uniqueImageNumbers)
+  });
+  
+  return false; // Rules satisfied, no regeneration needed
 }
 
 // Generate guaranteed top pack (at least 1 from carousel 1: cards 0-7)
