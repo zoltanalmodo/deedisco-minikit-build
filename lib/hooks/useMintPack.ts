@@ -145,8 +145,8 @@ export function useMintPack() {
       // TODO: Add back contract interaction once basic transfer works
       sendTransaction({
         to: address, // Send to user's own address for testing
-        value: BigInt("100000000000000"), // 0.0001 ETH in wei (smaller amount)
-        gas: BigInt("21000"), // Standard gas limit for ETH transfer
+        value: BigInt("10000000000000"), // 0.00001 ETH in wei (very small amount)
+        // Let MetaMask handle gas estimation automatically
         // No data field for simple ETH transfer
       });
 
