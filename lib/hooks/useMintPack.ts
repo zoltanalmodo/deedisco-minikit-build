@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
 import { useAccount } from 'wagmi';
+import { encodeFunctionData } from 'viem';
 import { nftContractConfig } from '../contract';
 import { config } from '../config';
 // import { mockContract } from '../mock-contract';
@@ -17,9 +18,10 @@ export function useMintPack() {
   const [result, setResult] = useState<MintPackResult | null>(null);
   
   const { address } = useAccount();
-  const { writeContract, data: hash, error, isPending } = useWriteContract();
+  const { data: hash, error, isPending } = useWriteContract();
+  const { sendTransaction, data: txHash, error: txError, isPending: isTxPending } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
+    hash: txHash || hash,
   });
 
   const mintPack = async (): Promise<MintPackResult> => {
@@ -33,18 +35,21 @@ export function useMintPack() {
     setResult(null);
 
     try {
-      // Use real contract minting - writeContract returns a promise
+      // Use real contract minting with payment
       console.log('🔄 Calling writeContract with payment of 0.001 ETH');
       
-      writeContract({
-        address: nftContractConfig.address,
-        abi: nftContractConfig.abi,
-        functionName: 'mintPack',
-        args: [address, BigInt(config.cardsPerPack)],
+      // First send the ETH payment
+      sendTransaction({
+        to: nftContractConfig.address,
         value: BigInt("1000000000000000"), // 0.001 ETH in wei
+        data: encodeFunctionData({
+          abi: nftContractConfig.abi,
+          functionName: 'mintPack',
+          args: [address, BigInt(config.cardsPerPack)],
+        }),
       });
 
-      console.log('✅ Transaction submitted! Hash:', hash);
+      console.log('✅ Transaction submitted! Hash:', txHash);
 
       // Wait for transaction confirmation
       console.log('⏳ Waiting for transaction confirmation...');
@@ -53,7 +58,7 @@ export function useMintPack() {
       // We'll return success immediately but the hook will update when confirmed
       const successResult: MintPackResult = {
         success: true,
-        transactionHash: hash,
+        transactionHash: txHash,
         tokenIds: [1, 2, 3], // Placeholder - will be populated after confirmation
       };
       
@@ -76,10 +81,10 @@ export function useMintPack() {
 
   return {
     mintPack,
-    isLoading: isLoading || isPending || isConfirming,
+    isLoading: isLoading || isPending || isTxPending || isConfirming,
     result,
-    error,
-    transactionHash: hash,
+    error: error || txError,
+    transactionHash: txHash || hash,
     isSuccess,
   };
 }
