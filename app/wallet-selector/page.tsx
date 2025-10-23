@@ -403,7 +403,7 @@ export default function WalletSelector() {
               color: '#FFFFFF'
             }}
           >
-            Select Wallet First
+            Select Wallet
           </button>
         )}
       </div>
