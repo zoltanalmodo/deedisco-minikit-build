@@ -16,7 +16,6 @@ export interface MintPackResult {
 function generateRandomCards(totalCards: number, cardsPerPack: number): number[] {
   // Only run on client side to prevent server-side rendering issues
   if (typeof window === 'undefined') {
-    console.log('🔄 Server-side rendering: Using fallback card selection');
     return [0, 1, 2]; // Fallback for server-side rendering
   }
   
@@ -61,7 +60,6 @@ function checkAllRandomPackRules(selectedCards: number[]): boolean {
   const uniqueImageNumbers = new Set(imageNumbers);
   
   if (uniqueImageNumbers.size !== 3) {
-    console.log('❌ All Random Pack Rule 1 violated: Same image numbers detected', imageNumbers);
     return true; // Needs regeneration
   }
   
@@ -78,15 +76,8 @@ function checkAllRandomPackRules(selectedCards: number[]): boolean {
   
   // If we have exactly one of each, it's a complete set (forbidden)
   if (hasTop && hasMiddle && hasBottom) {
-    console.log('❌ All Random Pack Rule 2 violated: Complete set detected (top + middle + bottom)', carouselTypes);
     return true; // Needs regeneration
   }
-  
-  console.log('✅ All Random Pack rules satisfied:', {
-    imageNumbers,
-    carouselTypes,
-    uniqueImageNumbers: Array.from(uniqueImageNumbers)
-  });
   
   return false; // Rules satisfied, no regeneration needed
 }
@@ -169,9 +160,6 @@ export function useMintPack() {
     hash,
   });
 
-  // Debug transaction state
-  console.log('🔍 useMintPack state:', { hash, isPending, isConfirming, isSuccess, error });
-
   const mintPack = async (packType: number = 0): Promise<MintPackResult> => {
     if (!address) {
       const error = 'No wallet connected';
@@ -181,48 +169,28 @@ export function useMintPack() {
 
     setIsLoading(true);
     setResult(null);
-    
-    // Clear any previous transaction state
-    console.log('🧹 Clearing previous transaction state...');
 
     try {
-      // Use real contract minting with payment
-      console.log('🔄 Calling mintPack contract function with payment of 0.001 ETH');
-      console.log('📋 Contract address:', nftContractConfig.address);
-      
       // Generate cards based on pack type
       let selectedCards: number[] = [];
       
       if (packType === 0) {
         // All Random Pack - completely random cards
         selectedCards = generateRandomCards(config.totalCards, config.cardsPerPack);
-        console.log('🎲 All Random Pack - Selected cards:', selectedCards);
       } else if (packType === 1) {
         // Guaranteed Top Pack - at least 1 from carousel 1 (cards 0-7)
         selectedCards = generateGuaranteedTopPack(config.totalCards, config.cardsPerPack);
-        console.log('🎯 Guaranteed Top Pack - Selected cards:', selectedCards);
       } else if (packType === 2) {
         // Guaranteed Middle Pack - at least 1 from carousel 2 (cards 8-15)
         selectedCards = generateGuaranteedMiddlePack(config.totalCards, config.cardsPerPack);
-        console.log('🎯 Guaranteed Middle Pack - Selected cards:', selectedCards);
       } else if (packType === 3) {
         // Guaranteed Bottom Pack - at least 1 from carousel 3 (cards 16-23)
         selectedCards = generateGuaranteedBottomPack(config.totalCards, config.cardsPerPack);
-        console.log('🎯 Guaranteed Bottom Pack - Selected cards:', selectedCards);
       }
       
       setSelectedCards(selectedCards);
       
       // REAL NFT MINTING - Call the actual contract
-      console.log('🔥 REAL NFT MINTING - Calling mintPack contract function');
-      console.log('📋 Contract address:', nftContractConfig.address);
-      
-      // REAL NFT MINTING - Call the actual mintPack function
-      console.log('🔥 REAL NFT MINTING - Calling mintPack contract function');
-      console.log('📋 Contract address:', nftContractConfig.address);
-      console.log('📋 Function: mintPack');
-      console.log('📋 Args:', [address, 3]);
-      
       writeContract({
         address: nftContractConfig.address,
         abi: nftContractConfig.abi,
@@ -230,11 +198,6 @@ export function useMintPack() {
         args: [address, BigInt(3)], // mint 3 NFTs to user's address
         // NO PAYMENT - FREE MINTING
       });
-
-      console.log('✅ NFT minting transaction initiated!');
-
-      // Wait for transaction confirmation
-      console.log('⏳ Waiting for transaction confirmation...');
       
       // The useWaitForTransactionReceipt hook will handle the confirmation
       // We'll return success immediately but the hook will update when confirmed

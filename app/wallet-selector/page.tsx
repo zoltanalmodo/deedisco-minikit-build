@@ -58,7 +58,6 @@ function WalletSelectorContent() {
       );
       
       setIsMiniApp(isFarcasterMiniApp);
-      console.log('🔍 Mini App detection:', { isFarcasterMiniApp, userAgent: window.navigator.userAgent });
     };
 
     detectMiniApp();
@@ -82,36 +81,20 @@ function WalletSelectorContent() {
             const chainIdNumber = parseInt(chainId, 16);
             const isBaseSepolia = chainIdNumber === 84532; // Base Sepolia chain ID
             
-            console.log('🔍 Connection verification:', { 
-              isConnected, 
-              address, 
-              accounts, 
-              isReallyConnected,
-              chainId: chainId,
-              chainIdNumber,
-              isBaseSepolia
-            });
-            
             setIsActuallyConnected(isReallyConnected);
             setIsOnBaseSepolia(isBaseSepolia);
             
             // Network name logic removed (no longer needed)
           } else {
-            console.log('❌ No ethereum provider found');
             setIsActuallyConnected(false);
             setIsOnBaseSepolia(false);
-            // setNetworkName(''); // Removed - no longer needed
           }
-        } catch (error) {
-          console.log('❌ Connection verification failed:', error);
+        } catch {
           // If verification fails, but wagmi says connected, assume it's connected
-          console.log('⚠️ Falling back to wagmi connection status');
           setIsActuallyConnected(true); // Trust wagmi if verification fails
           setIsOnBaseSepolia(false);
-          // setNetworkName('Unknown'); // Removed - no longer needed
         }
       } else {
-        console.log('🔌 Not connected:', { isConnected, address });
         setIsActuallyConnected(false);
         setIsOnBaseSepolia(false);
         // setNetworkName(''); // Removed - no longer needed
@@ -125,16 +108,11 @@ function WalletSelectorContent() {
 
   // Watch for transaction confirmation
   useEffect(() => {
-    console.log('🔍 Transaction state check:', { mintingState, isSuccess, isMinting });
     if (mintingState === 'minting' && isSuccess) {
-      console.log('✅ Transaction confirmed! NFTs are now in wallet');
-      
       // Fetch NFT metadata for the minted tokens using selected cards
       const fetchMintedNFTs = async () => {
         try {
           if (selectedCards && selectedCards.length > 0) {
-            console.log('🎨 Using selected cards for NFT metadata:', selectedCards);
-            
             const nftPromises = selectedCards.map((cardIndex, i) => {
               // Map card index to actual image path
               const carousel = Math.floor(cardIndex / 8) + 1;
@@ -150,18 +128,15 @@ function WalletSelectorContent() {
             });
             
             setMintedNFTs(nftPromises);
-            console.log('🎨 Generated NFT metadata from selected cards:', nftPromises);
           } else {
             // Fallback to random cards if selectedCards not available
-            console.log('⚠️ No selected cards available, using fallback');
             setMintedNFTs([
               { tokenId: 1, image: '/carousel1-image1.jpg', name: 'Deedisco Card #1', description: 'A unique trading card.' },
               { tokenId: 2, image: '/carousel2-image1.jpg', name: 'Deedisco Card #2', description: 'A unique trading card.' },
               { tokenId: 3, image: '/carousel3-image1.jpg', name: 'Deedisco Card #3', description: 'A unique trading card.' }
             ]);
           }
-        } catch (error) {
-          console.error('❌ Error generating NFT metadata:', error);
+        } catch {
           // Set fallback data
           setMintedNFTs([
             { tokenId: 1, image: '/carousel1-image1.jpg', name: 'Deedisco Card #1', description: 'A unique trading card.' },
@@ -182,7 +157,6 @@ function WalletSelectorContent() {
   // Handle transaction errors (user rejection, network issues, etc.)
   useEffect(() => {
     if (mintingState === 'minting' && error) {
-      console.log('❌ Transaction failed or was rejected:', error);
       setMintingState('idle'); // Go back to wallet selector
     }
   }, [mintingState, error]);
@@ -192,13 +166,11 @@ function WalletSelectorContent() {
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {
     setWalletType(wallet);
-    console.log('🎯 Wallet selected:', wallet);
   };
 
   // Handle actual wallet connection
   const handleWalletConnect = async () => {
     if (!walletType) {
-      alert('Please select a wallet first');
       return;
     }
     
@@ -224,31 +196,20 @@ function WalletSelectorContent() {
 
   // Handle minting
   const handleMint = async () => {
-    console.log('🎯 handleMint called - isActuallyConnected:', isActuallyConnected, 'isConnected:', isConnected, 'address:', address, 'useRealContract:', useRealContract);
-    
     if (!isActuallyConnected && !(isConnected && address)) {
-      console.log('❌ Not connected - cannot mint');
       return;
     }
     
-    console.log('🎯 Minting NFTs - isConnected:', isConnected, 'address:', address, 'useRealContract:', useRealContract);
-    
     if (useRealContract) {
       // REAL CONTRACT MINTING
-      console.log('🔥 REAL CONTRACT MINTING - This will use the actual blockchain!');
       setMintingState('minting');
       
       try {
         const result = await mintPack(selectedPackIndex);
-        if (result.success) {
-          console.log('✅ Transaction submitted, waiting for confirmation...');
-          // Don't set success here - wait for useEffect to detect isSuccess
-        } else {
-          console.error('❌ REAL MINTING FAILED:', result.error);
+        if (!result.success) {
           setMintingState('error');
         }
-      } catch (error) {
-        console.error('❌ REAL MINTING ERROR:', error);
+      } catch {
         setMintingState('error');
       }
     } else {
@@ -257,15 +218,6 @@ function WalletSelectorContent() {
       
       // Simulate minting delay
       setTimeout(() => {
-        const mockTransaction = {
-          hash: '0x' + Math.random().toString(16).substr(2, 64),
-          status: 'Success',
-          payment: 'Mock payment (testing)',
-          nftsMinted: '3 random cards',
-          tokenIds: '1, 2, 3'
-        };
-        
-        console.log('✅ Mock minting successful:', mockTransaction);
         setMintingState('success');
       }, 2000);
     }
@@ -442,7 +394,6 @@ function WalletSelectorContent() {
               onClick={() => {
                 disconnect();
                 setWalletType(null);
-                console.log('🔌 Wallet disconnected by user');
               }}
               className="text-white font-bold transition-colors text-sm"
               style={{ 
@@ -600,23 +551,9 @@ function WalletSelectorContent() {
           </button>
         </Link>
         
-        {(() => {
-          console.log('🔍 Button condition check:', {
-            isActuallyConnected,
-            isConnected,
-            address,
-            isOnBaseSepolia,
-            condition: ((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia)
-          });
-          return ((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia);
-        })() ? (
+        {((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia) ? (
           <button
-            onClick={() => {
-              console.log('🖱️ Buy Pack button clicked!');
-              alert('Button clicked!'); // Simple test
-              handleMint();
-            }}
-            disabled={false}
+            onClick={handleMint}
             className="text-white font-bold transition-colors text-base"
             style={{ 
               backgroundColor: '#000000',
