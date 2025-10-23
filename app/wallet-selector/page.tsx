@@ -27,6 +27,7 @@ function WalletSelectorContent() {
     payment?: string;
     error?: string;
   } | null>(null);
+  const [isActuallyConnected, setIsActuallyConnected] = useState(false);
   
   const searchParams = useSearchParams();
   const selectedPackIndex = parseInt(searchParams.get('pack') || '0');
@@ -34,8 +35,36 @@ function WalletSelectorContent() {
   
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
-  const { } = useDisconnect();
+  const { disconnect } = useDisconnect();
   const { mintPack, isLoading: isMinting, isSuccess } = useMintPack();
+
+  // Verify actual connection status
+  useEffect(() => {
+    const verifyConnection = async () => {
+      if (isConnected && address) {
+        try {
+          // Try to get accounts from the wallet to verify it's actually connected
+          if (window.ethereum) {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            const isReallyConnected = accounts.length > 0 && accounts[0] === address;
+            console.log('🔍 Connection verification:', { isConnected, address, accounts, isReallyConnected });
+            setIsActuallyConnected(isReallyConnected);
+          } else {
+            console.log('❌ No ethereum provider found');
+            setIsActuallyConnected(false);
+          }
+        } catch (error) {
+          console.log('❌ Connection verification failed:', error);
+          setIsActuallyConnected(false);
+        }
+      } else {
+        console.log('🔌 Not connected:', { isConnected, address });
+        setIsActuallyConnected(false);
+      }
+    };
+
+    verifyConnection();
+  }, [isConnected, address]);
 
   // Watch for transaction confirmation
   useEffect(() => {
@@ -85,7 +114,7 @@ function WalletSelectorContent() {
 
   // Handle minting
   const handleMint = async () => {
-    if (!isConnected) return;
+    if (!isActuallyConnected) return;
     
     console.log('🎯 Minting NFTs - isConnected:', isConnected, 'address:', address, 'useRealContract:', useRealContract);
     
@@ -279,6 +308,36 @@ function WalletSelectorContent() {
         />
       </div>
 
+      {/* Connection Status Display */}
+      {isActuallyConnected && address && (
+        <div className="w-full mb-4 p-3 bg-green-50 rounded-lg border-2 border-green-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+              <div className="text-sm text-green-800">
+                <span className="font-semibold">Connected:</span> {address.slice(0, 6)}...{address.slice(-4)}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                disconnect();
+                setWalletType(null);
+                console.log('🔌 Wallet disconnected by user');
+              }}
+              className="text-xs text-red-600 hover:text-red-800 font-medium"
+            >
+              Disconnect
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Debug Connection Status */}
+      <div className="w-full mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+        <div>Debug: isConnected={String(isConnected)}, isActuallyConnected={String(isActuallyConnected)}</div>
+        <div>Address: {address || 'None'}</div>
+      </div>
+
       {/* Use Real Contract Checkbox */}
       <div className="w-full mb-4">
         <label className="flex items-center">
@@ -409,7 +468,7 @@ function WalletSelectorContent() {
           </button>
         </Link>
         
-        {isConnected ? (
+        {isActuallyConnected ? (
           <button
             onClick={handleMint}
             disabled={isLoading || isMinting}
