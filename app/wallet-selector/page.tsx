@@ -326,39 +326,31 @@ function WalletSelectorContent() {
               Your NFTs are now in your wallet!
             </div>
             
-            {/* Show actual NFT images */}
-            <div className="flex justify-center gap-2 mb-4">
-              {mintedNFTs ? (
-                mintedNFTs.map((nft) => (
-                  <div key={nft.tokenId} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-300">
+            {/* Thank you message */}
+            <div className="text-lg font-semibold text-green-800 mb-4">
+              Thank you for your purchase!
+            </div>
+            
+            {/* Show actual NFT images in real proportions, vertically stacked */}
+            {mintedNFTs && (
+              <div className="flex flex-col items-center gap-3 mb-4">
+                {mintedNFTs.map((nft) => (
+                  <div key={nft.tokenId} className="w-32 h-20 rounded-lg overflow-hidden border-2 border-gray-300 shadow-md">
                     <Image
                       src={nft.image}
                       alt={nft.name}
-                      width={64}
-                      height={64}
-                      className="w-full h-full object-cover"
+                      width={128}
+                      height={80}
+                      className="w-full h-full object-contain"
                       onError={(e) => {
                         // Fallback to placeholder if image fails to load
                         (e.target as HTMLImageElement).src = '/pack-all-random.png';
                       }}
                     />
                   </div>
-                ))
-              ) : (
-                // Fallback placeholders while loading
-                <>
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-xs text-gray-600">Loading...</span>
-                  </div>
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-xs text-gray-600">Loading...</span>
-                  </div>
-                  <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span className="text-xs text-gray-600">Loading...</span>
-                  </div>
-                </>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
             
             <div className="text-sm text-green-700 mb-1">
               Transaction: {mintResult?.transactionHash || mintResult?.hash || 'Processing...'}
