@@ -20,13 +20,6 @@ function WalletSelectorContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [useRealContract, setUseRealContract] = useState(false);
   const [mintingState, setMintingState] = useState<'idle' | 'minting' | 'confirming' | 'success' | 'error'>('idle');
-  const [mintResult, setMintResult] = useState<{
-    hash?: string;
-    transactionHash?: string;
-    nftsMinted?: string;
-    payment?: string;
-    error?: string;
-  } | null>(null);
   const [mintedNFTs, setMintedNFTs] = useState<Array<{
     tokenId: number;
     image: string;
@@ -159,11 +152,6 @@ function WalletSelectorContent() {
       fetchMintedNFTs();
       
       setMintingState('success');
-      setMintResult({
-        transactionHash: 'Confirmed',
-        nftsMinted: '3 random cards',
-        payment: 'Completed'
-      });
       
       // Keep connected after successful minting - let user decide when to disconnect
     }
@@ -221,12 +209,10 @@ function WalletSelectorContent() {
         } else {
           console.error('❌ REAL MINTING FAILED:', result.error);
           setMintingState('error');
-          setMintResult({ error: result.error });
         }
       } catch (error) {
         console.error('❌ REAL MINTING ERROR:', error);
         setMintingState('error');
-        setMintResult({ error: error instanceof Error ? error.message : String(error) });
       }
     } else {
       // MOCK MINTING
@@ -244,7 +230,6 @@ function WalletSelectorContent() {
         
         console.log('✅ Mock minting successful:', mockTransaction);
         setMintingState('success');
-        setMintResult(mockTransaction);
       }, 2000);
     }
   };
@@ -303,7 +288,7 @@ function WalletSelectorContent() {
       >
         <header className="text-center mb-6 pt-1 pb-1">
           <h1 className="text-2xl sm:text-2xl font-bold mb-1 text-green-600">
-            ✅ NFTs Minted Successfully!
+            Thank you for your purchase!
           </h1>
         </header>
 
@@ -323,25 +308,20 @@ function WalletSelectorContent() {
         <div className="w-full mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
           <div className="text-center">
             <div className="text-lg font-semibold text-green-800 mb-4">
-              Your NFTs are now in your wallet!
-            </div>
-            
-            {/* Thank you message */}
-            <div className="text-lg font-semibold text-green-800 mb-4">
-              Thank you for your purchase!
+              Your cards are now in your wallet!
             </div>
             
             {/* Show actual NFT images in real proportions, vertically stacked */}
             {mintedNFTs && (
               <div className="flex flex-col items-center gap-3 mb-4">
                 {mintedNFTs.map((nft) => (
-                  <div key={nft.tokenId} className="w-32 h-20 rounded-lg overflow-hidden border-2 border-gray-300 shadow-md">
+                  <div key={nft.tokenId} className="inline-block rounded-lg border-2 border-gray-300 shadow-md p-2">
                     <Image
                       src={nft.image}
                       alt={nft.name}
-                      width={128}
-                      height={80}
-                      className="w-full h-full object-contain"
+                      width={200}
+                      height={150}
+                      className="max-w-full h-auto object-contain"
                       onError={(e) => {
                         // Fallback to placeholder if image fails to load
                         (e.target as HTMLImageElement).src = '/pack-all-random.png';
@@ -353,13 +333,13 @@ function WalletSelectorContent() {
             )}
             
             <div className="text-sm text-green-700 mb-1">
-              Transaction: {mintResult?.transactionHash || mintResult?.hash || 'Processing...'}
+              Transaction: Confirmed
             </div>
             <div className="text-sm text-green-700 mb-1">
-              NFTs: {mintResult?.nftsMinted || '3 random cards'}
+              NFTs: {selectedPack.name}
             </div>
             <div className="text-sm text-green-700">
-              Payment: {mintResult?.payment || 'Completed'}
+              Payment: Completed
             </div>
           </div>
         </div>
