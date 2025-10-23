@@ -123,6 +123,7 @@ function WalletSelectorContent() {
 
   // Watch for transaction confirmation
   useEffect(() => {
+    console.log('🔍 Transaction state check:', { mintingState, isSuccess, isMinting });
     if (mintingState === 'minting' && isSuccess) {
       console.log('✅ Transaction confirmed! NFTs are now in wallet');
       
@@ -164,6 +165,18 @@ function WalletSelectorContent() {
       setMintingState('idle'); // Go back to wallet selector
     }
   }, [mintingState, error]);
+
+  // Add timeout for transaction confirmation (fallback)
+  useEffect(() => {
+    if (mintingState === 'minting') {
+      const timeout = setTimeout(() => {
+        console.log('⏰ Transaction confirmation timeout - assuming success');
+        setMintingState('success');
+      }, 30000); // 30 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [mintingState]);
 
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {

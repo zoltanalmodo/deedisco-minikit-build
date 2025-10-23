@@ -23,6 +23,9 @@ export function useMintPack() {
     hash,
   });
 
+  // Debug transaction state
+  console.log('🔍 useMintPack state:', { hash, isPending, isConfirming, isSuccess, error });
+
   const mintPack = async (): Promise<MintPackResult> => {
     if (!address) {
       const error = 'No wallet connected';
