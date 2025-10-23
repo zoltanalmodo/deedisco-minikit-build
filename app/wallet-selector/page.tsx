@@ -48,7 +48,7 @@ function WalletSelectorContent() {
           // Try to get accounts from the wallet to verify it's actually connected
           if (window.ethereum) {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            const isReallyConnected = accounts.length > 0 && accounts[0] === address;
+            const isReallyConnected = accounts.length > 0 && accounts[0].toLowerCase() === address.toLowerCase();
             
             // Check network
             const chainId = await window.ethereum.request({ method: 'eth_chainId' });
@@ -84,7 +84,7 @@ function WalletSelectorContent() {
           console.log('❌ Connection verification failed:', error);
           // If verification fails, but wagmi says connected, assume it's connected
           console.log('⚠️ Falling back to wagmi connection status');
-          setIsActuallyConnected(isConnected);
+          setIsActuallyConnected(true); // Trust wagmi if verification fails
           setIsOnBaseSepolia(false);
           setNetworkName('Unknown');
         }
@@ -558,7 +558,7 @@ function WalletSelectorContent() {
           </button>
         </Link>
         
-        {(isActuallyConnected || (isConnected && address)) && isOnBaseSepolia ? (
+        {((isActuallyConnected || (isConnected && address)) && isOnBaseSepolia) ? (
           <button
             onClick={handleMint}
             disabled={isLoading || isMinting}
