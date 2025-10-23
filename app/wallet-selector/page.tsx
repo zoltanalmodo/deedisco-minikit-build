@@ -166,17 +166,7 @@ function WalletSelectorContent() {
     }
   }, [mintingState, error]);
 
-  // Add timeout for transaction confirmation (fallback)
-  useEffect(() => {
-    if (mintingState === 'minting') {
-      const timeout = setTimeout(() => {
-        console.log('⏰ Transaction confirmation timeout - assuming success');
-        setMintingState('success');
-      }, 30000); // 30 second timeout
-
-      return () => clearTimeout(timeout);
-    }
-  }, [mintingState]);
+  // No timeout fallback - we must get real confirmation from blockchain
 
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {
