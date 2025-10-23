@@ -28,7 +28,7 @@ function WalletSelectorContent() {
   }> | null>(null);
   const [isActuallyConnected, setIsActuallyConnected] = useState(false);
   const [isOnBaseSepolia, setIsOnBaseSepolia] = useState(false);
-  const [networkName, setNetworkName] = useState<string>('');
+  // const [networkName, setNetworkName] = useState<string>('');
   const [isMiniApp, setIsMiniApp] = useState(false);
   
   const searchParams = useSearchParams();
@@ -90,17 +90,12 @@ function WalletSelectorContent() {
             setIsActuallyConnected(isReallyConnected);
             setIsOnBaseSepolia(isBaseSepolia);
             
-            // Set network name
-            if (isBaseSepolia) {
-              setNetworkName('Base Sepolia');
-            } else {
-              setNetworkName(`Chain ID: ${chainIdNumber}`);
-            }
+            // Network name logic removed (no longer needed)
           } else {
             console.log('❌ No ethereum provider found');
             setIsActuallyConnected(false);
             setIsOnBaseSepolia(false);
-            setNetworkName('');
+            // setNetworkName(''); // Removed - no longer needed
           }
         } catch (error) {
           console.log('❌ Connection verification failed:', error);
@@ -108,13 +103,13 @@ function WalletSelectorContent() {
           console.log('⚠️ Falling back to wagmi connection status');
           setIsActuallyConnected(true); // Trust wagmi if verification fails
           setIsOnBaseSepolia(false);
-          setNetworkName('Unknown');
+          // setNetworkName('Unknown'); // Removed - no longer needed
         }
       } else {
         console.log('🔌 Not connected:', { isConnected, address });
         setIsActuallyConnected(false);
         setIsOnBaseSepolia(false);
-        setNetworkName('');
+        // setNetworkName(''); // Removed - no longer needed
       }
     };
 
@@ -439,7 +434,19 @@ function WalletSelectorContent() {
                 setWalletType(null);
                 console.log('🔌 Wallet disconnected by user');
               }}
-              className="text-xs text-red-600 hover:text-red-800 font-medium"
+              className="text-white font-bold transition-colors text-sm"
+              style={{ 
+                backgroundColor: '#DC2626',
+                borderRadius: '25px',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontWeight: 700,
+                paddingTop: '12px',
+                paddingBottom: '12px',
+                paddingLeft: '24px',
+                paddingRight: '24px'
+              }}
+              onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#B91C1C'}
+              onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#DC2626'}
             >
               Disconnect
             </button>
@@ -447,38 +454,7 @@ function WalletSelectorContent() {
         </div>
       )}
 
-          {/* Network Status Display */}
-          {isConnected && address && (
-            <div className={`w-full mb-4 p-3 rounded-lg border-2 ${
-              isOnBaseSepolia 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-red-50 border-red-200'
-            }`}>
-              <div className={`text-sm font-semibold ${
-                isOnBaseSepolia ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {isOnBaseSepolia ? '✅ Connected to Base Sepolia' : '❌ Wrong Network'}
-              </div>
-              <div className={`text-xs ${
-                isOnBaseSepolia ? 'text-green-700' : 'text-red-700'
-              }`}>
-                {isOnBaseSepolia 
-                  ? 'You can proceed with minting NFTs' 
-                  : `Currently on ${networkName}. Please switch to Base Sepolia network.`
-                }
-              </div>
-            </div>
-          )}
 
-          {/* Debug Connection Status */}
-          <div className="w-full mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-            <div>Debug: isConnected={String(isConnected)}, isActuallyConnected={String(isActuallyConnected)}</div>
-            <div>Address: {address || 'None'}</div>
-            <div>Wallet Type: {walletType || 'None'}</div>
-            <div>Network: {networkName || 'None'}</div>
-            <div>Base Sepolia: {String(isOnBaseSepolia)}</div>
-            <div>Mini App Mode: {String(isMiniApp)}</div>
-          </div>
 
       {/* Use Real Contract Checkbox */}
       <div className="w-full mb-4">
@@ -490,7 +466,7 @@ function WalletSelectorContent() {
             className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
           <span className="text-sm text-gray-700">
-            Use Real Contract (requires wallet connection)
+            Test on Base Sepolia (connect wallet)
           </span>
         </label>
       </div>
