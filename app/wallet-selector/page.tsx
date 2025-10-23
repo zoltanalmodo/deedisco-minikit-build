@@ -3,8 +3,17 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { useMintPack } from "../../lib/hooks/useMintPack";
+
+// Pack data - same as pack-selection page
+const packData = [
+  { id: 1, src: "/pack-all-random.png", alt: "All Random Pack", name: "All Random Pack" },
+  { id: 2, src: "/pack-guaranteed-top.png", alt: "Guaranteed Top Pack", name: "Guaranteed Top Pack" },
+  { id: 3, src: "/pack-guaranteed-mid.png", alt: "Guaranteed Mid Pack", name: "Guaranteed Mid Pack" },
+  { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bot Pack", name: "Guaranteed Bot Pack" },
+]
 
 export default function WalletSelector() {
   const [walletType, setWalletType] = useState<string | null>(null);
@@ -18,6 +27,10 @@ export default function WalletSelector() {
     payment?: string;
     error?: string;
   } | null>(null);
+  
+  const searchParams = useSearchParams();
+  const selectedPackIndex = parseInt(searchParams.get('pack') || '0');
+  const selectedPack = packData[selectedPackIndex] || packData[0];
   
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
@@ -133,8 +146,8 @@ export default function WalletSelector() {
         {/* Pack Image */}
         <div className="w-full mb-6 flex justify-center">
           <Image
-            src="/pack-all-random.png"
-            alt="3 CARDS PACK"
+            src={selectedPack.src}
+            alt={selectedPack.alt}
             width={192}
             height={192}
             className="w-48 h-48 object-contain"
@@ -178,8 +191,8 @@ export default function WalletSelector() {
         {/* Pack Image */}
         <div className="w-full mb-6 flex justify-center">
           <Image
-            src="/pack-all-random.png"
-            alt="3 CARDS PACK"
+            src={selectedPack.src}
+            alt={selectedPack.alt}
             width={192}
             height={192}
             className="w-48 h-48 object-contain"
@@ -257,8 +270,8 @@ export default function WalletSelector() {
       {/* Pack Image - NO frame, NO shadow, just the image */}
       <div className="w-full mb-4 flex justify-center">
         <Image
-          src="/pack-all-random.png"
-          alt="3 CARDS PACK"
+          src={selectedPack.src}
+          alt={selectedPack.alt}
           width={192}
           height={192}
           className="w-48 h-48 object-contain"

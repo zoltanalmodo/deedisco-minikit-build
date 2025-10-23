@@ -69,7 +69,7 @@ export default function PackSelection() {
 
       {/* Buy Button - Links to wallet selector page */}
       <div className="flex justify-center w-full">
-        <Link href="/wallet-selector">
+        <Link href={`/wallet-selector?pack=${selectedPack}`}>
           <button
             type="button"
             className="text-white font-bold transition-colors text-base"
