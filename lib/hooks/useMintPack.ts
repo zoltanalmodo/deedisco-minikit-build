@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { nftContractConfig } from '../contract';
 import { config } from '../config';
@@ -34,20 +34,14 @@ export function useMintPack() {
 
     try {
       // Use real contract minting - writeContract returns a promise
-      console.log('🔄 Calling writeContract with:', {
-        address: nftContractConfig.address,
-        functionName: 'mintPack',
-        args: [address, BigInt(config.cardsPerPack)],
-        value: 1000000000000000n, // 0.001 ETH in wei (using bigint literal)
-      });
+      console.log('🔄 Calling writeContract with payment of 0.001 ETH');
       
       writeContract({
         address: nftContractConfig.address,
         abi: nftContractConfig.abi,
         functionName: 'mintPack',
         args: [address, BigInt(config.cardsPerPack)],
-        value: 1000000000000000n, // 0.001 ETH in wei (using bigint literal)
-      });
+      } as any);
 
       console.log('✅ Transaction submitted! Hash:', hash);
 

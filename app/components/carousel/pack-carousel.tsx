@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
+import NextImage from "next/image"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Pack {
@@ -68,7 +68,7 @@ export default function PackCarousel({
               }`}
             >
               <div className="relative h-full w-full">
-                <Image
+                <NextImage
                   src={pack.src}
                   alt={pack.alt}
                   fill
