@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -15,7 +15,7 @@ const packData = [
   { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bot Pack", name: "Guaranteed Bot Pack" },
 ]
 
-export default function WalletSelector() {
+function WalletSelectorContent() {
   const [walletType, setWalletType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [useRealContract, setUseRealContract] = useState(false);
@@ -470,5 +470,13 @@ export default function WalletSelector() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function WalletSelector() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <WalletSelectorContent />
+    </Suspense>
   );
 }
