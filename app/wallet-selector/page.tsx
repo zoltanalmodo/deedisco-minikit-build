@@ -38,7 +38,7 @@ function WalletSelectorContent() {
   const { disconnect } = useDisconnect();
   const { mintPack, isLoading: isMinting, isSuccess } = useMintPack();
 
-  // Verify actual connection status
+  // Verify actual connection status and auto-disconnect if needed
   useEffect(() => {
     const verifyConnection = async () => {
       if (isConnected && address) {
@@ -48,16 +48,27 @@ function WalletSelectorContent() {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             const isReallyConnected = accounts.length > 0 && accounts[0] === address;
             console.log('🔍 Connection verification:', { isConnected, address, accounts, isReallyConnected });
-            setIsActuallyConnected(isReallyConnected);
+            
+            if (isReallyConnected) {
+              setIsActuallyConnected(true);
+            } else {
+              console.log('🚨 Wallet verification failed - auto-disconnecting');
+              setIsActuallyConnected(false);
+              // Auto-disconnect to fix the state mismatch
+              disconnect();
+              setWalletType(null);
+            }
           } else {
-            console.log('❌ No ethereum provider found');
+            console.log('❌ No ethereum provider found - auto-disconnecting');
             setIsActuallyConnected(false);
+            disconnect();
+            setWalletType(null);
           }
         } catch (error) {
-          console.log('❌ Connection verification failed:', error);
-          // If verification fails, but wagmi says connected, assume it's connected
-          console.log('⚠️ Falling back to wagmi connection status');
-          setIsActuallyConnected(isConnected);
+          console.log('❌ Connection verification failed - auto-disconnecting:', error);
+          setIsActuallyConnected(false);
+          disconnect();
+          setWalletType(null);
         }
       } else {
         console.log('🔌 Not connected:', { isConnected, address });
@@ -66,7 +77,7 @@ function WalletSelectorContent() {
     };
 
     verifyConnection();
-  }, [isConnected, address]);
+  }, [isConnected, address, disconnect]);
 
   // Watch for transaction confirmation
   useEffect(() => {
@@ -78,8 +89,15 @@ function WalletSelectorContent() {
         nftsMinted: '3 random cards',
         payment: 'Completed'
       });
+      
+      // Auto-disconnect after successful minting for clean state
+      setTimeout(() => {
+        console.log('🧹 Auto-disconnecting after successful mint');
+        disconnect();
+        setWalletType(null);
+      }, 2000);
     }
-  }, [mintingState, isSuccess]);
+  }, [mintingState, isSuccess, disconnect]);
 
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {
@@ -447,7 +465,7 @@ function WalletSelectorContent() {
       </div>
 
       {/* Disconnect Wallet Button - Show when connected */}
-      {(isActuallyConnected || (isConnected && address)) && (
+      {isActuallyConnected && (
         <div className="w-full mb-4">
           <button
             onClick={() => {
@@ -500,7 +518,7 @@ function WalletSelectorContent() {
           </button>
         </Link>
         
-        {(isActuallyConnected || (isConnected && address)) ? (
+        {isActuallyConnected ? (
           <button
             onClick={handleMint}
             disabled={isLoading || isMinting}
