@@ -37,7 +37,7 @@ function WalletSelectorContent() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
-  const { mintPack, isLoading: isMinting, isSuccess } = useMintPack();
+  const { mintPack, isLoading: isMinting, isSuccess, error } = useMintPack();
 
   // Verify actual connection status and network
   useEffect(() => {
@@ -156,6 +156,14 @@ function WalletSelectorContent() {
       // Keep connected after successful minting - let user decide when to disconnect
     }
   }, [mintingState, isSuccess, disconnect]);
+
+  // Handle transaction errors (user rejection, network issues, etc.)
+  useEffect(() => {
+    if (mintingState === 'minting' && error) {
+      console.log('❌ Transaction failed or was rejected:', error);
+      setMintingState('idle'); // Go back to wallet selector
+    }
+  }, [mintingState, error]);
 
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {
