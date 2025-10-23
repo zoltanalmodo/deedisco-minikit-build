@@ -194,142 +194,135 @@ function WalletSelectorContent() {
     }
   };
 
-  // Show "Minting in progress" page while waiting for wallet confirmation
-  if (mintingState === 'minting') {
-    return (
-      <main
-        className="flex flex-col items-center w-full max-w-md mx-auto px-8 py-4 bg-white text-black"
-        style={{ minHeight: "100vh", overflowY: "auto" }}
-      >
-        <header className="text-center mb-6 pt-1 pb-1">
-          <h1 className="text-2xl sm:text-2xl font-bold mb-1 text-blue-600">
-            🔄 Minting in Progress
-          </h1>
-        </header>
-
-        {/* Pack Image */}
-        <div className="w-full mb-6 flex justify-center">
-          <Image
-            src={selectedPack.src}
-            alt={selectedPack.alt}
-            width={192}
-            height={192}
-            className="w-48 h-48 object-contain"
-            priority
-          />
-        </div>
-
-        {/* Progress Message */}
-        <div className="w-full mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-blue-800 mb-2">
-              Follow your wallet instructions
-            </div>
-            <div className="text-sm text-blue-700">
-              Please confirm the transaction in your wallet to complete the minting process.
-            </div>
-          </div>
-        </div>
-
-        {/* Loading indicator */}
-        <div className="flex items-center justify-center mb-6">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      </main>
-    );
-  }
-
-  // Show confirmation page after successful minting
-  if (mintingState === 'success') {
-    return (
-      <main
-        className="flex flex-col items-center w-full max-w-md mx-auto px-8 py-4 bg-white text-black"
-        style={{ minHeight: "100vh", overflowY: "auto" }}
-      >
-        <header className="text-center mb-6 pt-1 pb-1">
-          <h1 className="text-2xl sm:text-2xl font-bold mb-1 text-green-600">
-            ✅ NFTs Minted Successfully!
-          </h1>
-        </header>
-
-        {/* Pack Image */}
-        <div className="w-full mb-6 flex justify-center">
-          <Image
-            src={selectedPack.src}
-            alt={selectedPack.alt}
-            width={192}
-            height={192}
-            className="w-48 h-48 object-contain"
-            priority
-          />
-        </div>
-
-        {/* Transaction Details */}
-        <div className="w-full mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-green-800 mb-4">
-              Your NFTs are now in your wallet!
-            </div>
-            
-            {/* Show 3 NFT images */}
-            <div className="flex justify-center gap-2 mb-4">
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-gray-600">NFT #1</span>
-              </div>
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-gray-600">NFT #2</span>
-              </div>
-              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-xs text-gray-600">NFT #3</span>
-              </div>
-            </div>
-            
-            <div className="text-sm text-green-700 mb-1">
-              Transaction: {mintResult?.transactionHash || mintResult?.hash || 'Processing...'}
-            </div>
-            <div className="text-sm text-green-700 mb-1">
-              NFTs: {mintResult?.nftsMinted || '3 random cards'}
-            </div>
-            <div className="text-sm text-green-700">
-              Payment: {mintResult?.payment || 'Completed'}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-center w-full">
-          <Link href="/pack-selection">
-            <button
-              className="text-white font-bold transition-colors text-base"
-              style={{ 
-                backgroundColor: '#000000',
-                borderRadius: '25px',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                fontWeight: 700,
-                paddingTop: '12px',
-                paddingBottom: '12px',
-                paddingLeft: '24px',
-                paddingRight: '24px'
-              }}
-            >
-              Done
-            </button>
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main
       className="flex flex-col items-center w-full max-w-md mx-auto px-8 py-4 bg-white text-black"
       style={{ minHeight: "100vh", overflowY: "auto" }}
     >
-      <header className="text-center mb-1 pt-1 pb-1">
-        <h1 className="text-2xl sm:text-2xl font-bold mb-1">
-          Choose your wallet
-        </h1>
-      </header>
+      {/* Show "Minting in progress" page while waiting for wallet confirmation */}
+      {mintingState === 'minting' && (
+        <>
+          <header className="text-center mb-6 pt-1 pb-1">
+            <h1 className="text-2xl sm:text-2xl font-bold mb-1 text-blue-600">
+              🔄 Minting in Progress
+            </h1>
+          </header>
+
+          {/* Pack Image */}
+          <div className="w-full mb-6 flex justify-center">
+            <Image
+              src={selectedPack.src}
+              alt={selectedPack.alt}
+              width={192}
+              height={192}
+              className="w-48 h-48 object-contain"
+              priority
+            />
+          </div>
+
+          {/* Progress Message */}
+          <div className="w-full mb-6 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-blue-800 mb-2">
+                Follow your wallet instructions
+              </div>
+              <div className="text-sm text-blue-700">
+                Please confirm the transaction in your wallet to complete the minting process.
+              </div>
+            </div>
+          </div>
+
+          {/* Loading indicator */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </>
+      )}
+
+      {/* Show confirmation page after successful minting */}
+      {mintingState === 'success' && (
+        <>
+          <header className="text-center mb-6 pt-1 pb-1">
+            <h1 className="text-2xl sm:text-2xl font-bold mb-1 text-green-600">
+              ✅ NFTs Minted Successfully!
+            </h1>
+          </header>
+
+          {/* Pack Image */}
+          <div className="w-full mb-6 flex justify-center">
+            <Image
+              src={selectedPack.src}
+              alt={selectedPack.alt}
+              width={192}
+              height={192}
+              className="w-48 h-48 object-contain"
+              priority
+            />
+          </div>
+
+          {/* Transaction Details */}
+          <div className="w-full mb-6 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-green-800 mb-4">
+                Your NFTs are now in your wallet!
+              </div>
+              
+              {/* Show 3 NFT images */}
+              <div className="flex justify-center gap-2 mb-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-xs text-gray-600">NFT #1</span>
+                </div>
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-xs text-gray-600">NFT #2</span>
+                </div>
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <span className="text-xs text-gray-600">NFT #3</span>
+                </div>
+              </div>
+              
+              <div className="text-sm text-green-700 mb-1">
+                Transaction: {mintResult?.transactionHash || mintResult?.hash || 'Processing...'}
+              </div>
+              <div className="text-sm text-green-700 mb-1">
+                NFTs: {mintResult?.nftsMinted || '3 random cards'}
+              </div>
+              <div className="text-sm text-green-700">
+                Payment: {mintResult?.payment || 'Completed'}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-center w-full">
+            <Link href="/pack-selection">
+              <button
+                className="text-white font-bold transition-colors text-base"
+                style={{ 
+                  backgroundColor: '#000000',
+                  borderRadius: '25px',
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  fontWeight: 700,
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  paddingLeft: '24px',
+                  paddingRight: '24px'
+                }}
+              >
+                Done
+              </button>
+            </Link>
+          </div>
+        </>
+      )}
+
+      {/* Show main wallet selector page when not minting or success */}
+      {mintingState !== 'minting' && mintingState !== 'success' && (
+        <>
+          <header className="text-center mb-1 pt-1 pb-1">
+            <h1 className="text-2xl sm:text-2xl font-bold mb-1">
+              Choose your wallet
+            </h1>
+          </header>
 
       {/* Pack Image - NO frame, NO shadow, just the image */}
       <div className="w-full mb-4 flex justify-center">
@@ -367,37 +360,37 @@ function WalletSelectorContent() {
         </div>
       )}
 
-      {/* Network Status Display */}
-      {isConnected && address && (
-        <div className={`w-full mb-4 p-3 rounded-lg border-2 ${
-          isOnBaseSepolia 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <div className={`text-sm font-semibold ${
-            isOnBaseSepolia ? 'text-green-800' : 'text-red-800'
-          }`}>
-            {isOnBaseSepolia ? '✅ Connected to Base Sepolia' : '❌ Wrong Network'}
-          </div>
-          <div className={`text-xs ${
-            isOnBaseSepolia ? 'text-green-700' : 'text-red-700'
-          }`}>
-            {isOnBaseSepolia 
-              ? 'You can proceed with minting NFTs' 
-              : `Currently on ${networkName}. Please switch to Base Sepolia network.`
-            }
-          </div>
-        </div>
-      ))}
+          {/* Network Status Display */}
+          {isConnected && address && (
+            <div className={`w-full mb-4 p-3 rounded-lg border-2 ${
+              isOnBaseSepolia 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <div className={`text-sm font-semibold ${
+                isOnBaseSepolia ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {isOnBaseSepolia ? '✅ Connected to Base Sepolia' : '❌ Wrong Network'}
+              </div>
+              <div className={`text-xs ${
+                isOnBaseSepolia ? 'text-green-700' : 'text-red-700'
+              }`}>
+                {isOnBaseSepolia 
+                  ? 'You can proceed with minting NFTs' 
+                  : `Currently on ${networkName}. Please switch to Base Sepolia network.`
+                }
+              </div>
+            </div>
+          )}
 
-      {/* Debug Connection Status */}
-      <div className="w-full mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-        <div>Debug: isConnected={String(isConnected)}, isActuallyConnected={String(isActuallyConnected)}</div>
-        <div>Address: {address || 'None'}</div>
-        <div>Wallet Type: {walletType || 'None'}</div>
-        <div>Network: {networkName || 'None'}</div>
-        <div>Base Sepolia: {String(isOnBaseSepolia)}</div>
-      </div>
+          {/* Debug Connection Status */}
+          <div className="w-full mb-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
+            <div>Debug: isConnected={String(isConnected)}, isActuallyConnected={String(isActuallyConnected)}</div>
+            <div>Address: {address || 'None'}</div>
+            <div>Wallet Type: {walletType || 'None'}</div>
+            <div>Network: {networkName || 'None'}</div>
+            <div>Base Sepolia: {String(isOnBaseSepolia)}</div>
+          </div>
 
       {/* Use Real Contract Checkbox */}
       <div className="w-full mb-4">
@@ -636,6 +629,8 @@ function WalletSelectorContent() {
           </button>
         )}
       </div>
+        </>
+      )}
     </main>
   );
 }
