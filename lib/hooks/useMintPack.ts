@@ -45,6 +45,7 @@ export function useMintPack() {
           functionName: 'mintPack',
           args: [address, BigInt(config.cardsPerPack)],
         }),
+        gas: BigInt("200000"), // Provide gas estimate to help wallet
       });
 
       console.log('✅ Transaction submitted! Hash:', hash);

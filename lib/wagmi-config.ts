@@ -2,6 +2,7 @@ import { createConfig, http } from 'wagmi';
 import { baseSepolia } from 'wagmi/chains';
 import { metaMask, coinbaseWallet } from 'wagmi/connectors';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
+import { config } from './config';
 
 // Always use BASE Sepolia testnet for development
 const selectedChain = baseSepolia;
@@ -21,7 +22,11 @@ export const wagmiConfig = createConfig({
   chains: [selectedChain],
   connectors,
   transports: {
-    [selectedChain.id]: http(),
+    [selectedChain.id]: http(config.rpcUrl, {
+      batch: true,
+      retryCount: 3,
+      retryDelay: 1000,
+    }),
   },
 });
 
