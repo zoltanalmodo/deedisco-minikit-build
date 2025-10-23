@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWriteContract, useWaitForTransactionReceipt, useSendTransaction } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useAccount } from 'wagmi';
 import { nftContractConfig } from '../contract';
 import { config } from '../config';
@@ -41,7 +41,8 @@ export function useMintPack() {
         abi: nftContractConfig.abi,
         functionName: 'mintPack',
         args: [address, BigInt(config.cardsPerPack)],
-      } as any);
+        value: BigInt("1000000000000000"), // 0.001 ETH in wei
+      });
 
       console.log('✅ Transaction submitted! Hash:', hash);
 
