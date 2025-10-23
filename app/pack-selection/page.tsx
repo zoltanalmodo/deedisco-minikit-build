@@ -1,20 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import PackCarousel from "@/app/components/carousel/pack-carousel"
 // import MintButton from "@/app/components/carousel/mint-button"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 
 // Pack data - 4 pack options as requested
 const packData = [
   { id: 1, src: "/pack-all-random.png", alt: "All Random Pack", name: "All Random Pack" },
   { id: 2, src: "/pack-guaranteed-top.png", alt: "Guaranteed Top Pack", name: "Guaranteed Top Pack" },
-  { id: 3, src: "/pack-guaranteed-mid.png", alt: "Guaranteed Mid Pack", name: "Guaranteed Mid Pack" },
-  { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bot Pack", name: "Guaranteed Bot Pack" },
+  { id: 3, src: "/pack-guaranteed-mid.png", alt: "Guaranteed Middle Pack", name: "Guaranteed Middle Pack" },
+  { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bottom Pack", name: "Guaranteed Bottom Pack" },
 ]
 
-export default function PackSelection() {
-  const [selectedPack, setSelectedPack] = useState(0)
+function PackSelectionContent() {
+  const searchParams = useSearchParams()
+  const initialPack = parseInt(searchParams.get('pack') || '0')
+  const [selectedPack, setSelectedPack] = useState(initialPack)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -26,6 +29,12 @@ export default function PackSelection() {
       console.log("Farcaster SDK ready signal sent (method)")
     }
   }, [])
+
+  // Update selectedPack when URL parameter changes
+  useEffect(() => {
+    const packFromUrl = parseInt(searchParams.get('pack') || '0')
+    setSelectedPack(packFromUrl)
+  }, [searchParams])
 
   const handlePackSelect = (packIndex: number) => {
     setSelectedPack(packIndex)
@@ -124,5 +133,13 @@ export default function PackSelection() {
         </Link>
       </div>
     </main>
+  )
+}
+
+export default function PackSelection() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PackSelectionContent />
+    </Suspense>
   )
 }

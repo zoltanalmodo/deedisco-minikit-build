@@ -11,8 +11,8 @@ import { useMintPack } from "../../lib/hooks/useMintPack";
 const packData = [
   { id: 1, src: "/pack-all-random.png", alt: "All Random Pack", name: "All Random Pack" },
   { id: 2, src: "/pack-guaranteed-top.png", alt: "Guaranteed Top Pack", name: "Guaranteed Top Pack" },
-  { id: 3, src: "/pack-guaranteed-mid.png", alt: "Guaranteed Mid Pack", name: "Guaranteed Mid Pack" },
-  { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bot Pack", name: "Guaranteed Bot Pack" },
+  { id: 3, src: "/pack-guaranteed-mid.png", alt: "Guaranteed Middle Pack", name: "Guaranteed Middle Pack" },
+  { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bottom Pack", name: "Guaranteed Bottom Pack" },
 ]
 
 function WalletSelectorContent() {
@@ -386,7 +386,7 @@ function WalletSelectorContent() {
 
       {/* Action Buttons - SIDE BY SIDE - Perfect spacing achieved */}
       <div className="flex justify-between w-full mt-3 gap-3">
-        <Link href="/pack-selection">
+        <Link href={`/pack-selection?pack=${selectedPackIndex}`}>
           <button
             type="button"
             className="font-bold transition-colors text-base"
