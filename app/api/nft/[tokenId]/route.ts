@@ -101,17 +101,25 @@ export async function GET(
       image: imageUrl,
       external_url: baseUrl,
       attributes: card.attributes,
-      // OpenSea metadata for proper display
-      animation_url: null,
-      background_color: null,
-      // Image properties to maintain aspect ratio (approximately 3:1 - horizontal/rectangular)
-      image_data: null,
+      // CRITICAL: Multiple aspect ratio hints for different wallets
       image_details: {
         format: "image/jpeg",
         width: 1500,  // Wide rectangular format
-        height: 500,  // Maintains horizontal rectangular shape (3:1 ratio)
+        height: 500,   // Maintains horizontal rectangular shape (3:1 ratio)
         bytes: null
       },
+      // Warpcast/Farcaster specific aspect ratio
+      aspect_ratio: "3:1",
+      // Additional metadata for wallet compatibility
+      properties: {
+        aspect_ratio: "3:1",
+        original_width: 858,
+        original_height: 286,
+        display_ratio: "horizontal"
+      },
+      // OpenSea extensions
+      animation_url: null,
+      background_color: null,
       // Add contract metadata
       contract: {
         name: config.contractName,
