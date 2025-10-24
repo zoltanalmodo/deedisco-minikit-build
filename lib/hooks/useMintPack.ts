@@ -190,12 +190,15 @@ export function useMintPack() {
       
       setSelectedCards(selectedCards);
       
-      // REAL NFT MINTING - Call the actual contract
+      // REAL NFT MINTING - Call the actual contract with selected card IDs
+      // Convert card indices to BigInt array for Solidity uint256[]
+      const cardIdsBigInt = selectedCards.map(cardId => BigInt(cardId));
+      
       writeContract({
         address: nftContractConfig.address,
         abi: nftContractConfig.abi,
         functionName: 'mintPack',
-        args: [address, BigInt(3)], // mint 3 NFTs to user's address
+        args: [address, cardIdsBigInt], // Pass wallet address and array of card IDs
         // NO PAYMENT - FREE MINTING
       });
       

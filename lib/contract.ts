@@ -26,13 +26,24 @@ export const nftContractAbi = [
   {
     "inputs": [
       { "internalType": "address", "name": "to", "type": "address" },
-      { "internalType": "uint256", "name": "quantity", "type": "uint256" }
+      { "internalType": "uint256[]", "name": "cardIds", "type": "uint256[]" }
     ],
     "name": "mintPack",
     "outputs": [
       { "internalType": "uint256[]", "name": "tokenIds", "type": "uint256[]" }
     ],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+    ],
+    "name": "getCardId",
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {

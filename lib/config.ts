@@ -5,7 +5,7 @@ export const config = {
   rpcUrl: process.env.NEXT_PUBLIC_BASE_TESTNET_RPC || 'https://sepolia.base.org',
   
   // NFT Contract Configuration
-  nftContractAddress: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0xb003736Ea1316E151d705dC94d91c251B5015E06', // FREE MINTING - No payment required!
+  nftContractAddress: process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || '0x35C06a6484702C1e5FdAA991f2cF45ABc3EC477a', // FIXED CONTRACT - Stores card IDs for correct metadata!
   
   // IPFS Configuration
   ipfsGateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://ipfs.io/ipfs/',
