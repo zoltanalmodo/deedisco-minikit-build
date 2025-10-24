@@ -73,62 +73,6 @@ export default function RootLayout({
       <body className="bg-[#1a1a1a]">
         <Providers>{children}</Providers>
         <Toaster /> {/* 👈 mount once so useToast() toasts are visible */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Farcaster Frame SDK ready() call
-              (function() {
-                console.log('🚀 Initializing Farcaster Frame ready() call');
-                
-                function callReady() {
-                  console.log('🚀 Attempting to call ready() for Farcaster');
-                  
-                  // Method 1: Try window.farcaster.ready()
-                  if (window.farcaster && typeof window.farcaster.ready === 'function') {
-                    window.farcaster.ready();
-                    console.log('✅ Called window.farcaster.ready()');
-                    return;
-                  }
-                  
-                  // Method 2: Try parent.farcaster.ready()
-                  if (window.parent && window.parent.farcaster && typeof window.parent.farcaster.ready === 'function') {
-                    window.parent.farcaster.ready();
-                    console.log('✅ Called parent.farcaster.ready()');
-                    return;
-                  }
-                  
-                  // Method 3: PostMessage approach
-                  try {
-                    window.parent.postMessage({ type: 'ready', source: 'farcaster-frame' }, '*');
-                    console.log('✅ Sent ready postMessage');
-                  } catch (e) {
-                    console.log('❌ PostMessage failed:', e);
-                  }
-                  
-                  // Method 4: Try to access global SDK
-                  if (typeof window !== 'undefined' && window.farcaster) {
-                    try {
-                      window.farcaster.ready();
-                      console.log('✅ Called global farcaster.ready()');
-                    } catch (e) {
-                      console.log('❌ Global farcaster.ready() failed:', e);
-                    }
-                  }
-                }
-                
-                // Call ready immediately and on load
-                callReady();
-                window.addEventListener('load', callReady);
-                document.addEventListener('DOMContentLoaded', callReady);
-                
-                // Also try after a short delay
-                setTimeout(callReady, 100);
-                setTimeout(callReady, 500);
-                setTimeout(callReady, 1000);
-              })();
-            `,
-          }}
-        />
       </body>
     </html>
   )

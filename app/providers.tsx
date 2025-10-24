@@ -16,19 +16,42 @@ declare global {
   }
 }
 
-// Component to handle sdk.actions.ready() call
-function MiniAppReadyHandler() {
+// Component to handle Farcaster Frame ready() call
+function FarcasterReadyHandler() {
   useEffect(() => {
-    // Call ready() using the global Farcaster SDK
-    if (typeof window !== 'undefined' && window.farcaster) {
-      console.log('🚀 Calling window.farcaster.ready() for Farcaster Mini App');
-      window.farcaster.ready();
-    } else {
-      console.log('🚀 Calling ready() via script injection for Farcaster Mini App');
-      // Fallback: inject the ready call
-      const script = document.createElement('script');
-      script.textContent = 'if (window.farcaster) { window.farcaster.ready(); }';
-      document.head.appendChild(script);
+    console.log('🚀 FarcasterReadyHandler: Attempting to call ready()');
+    
+    // Method 1: Try to access the Farcaster SDK from window
+    if (typeof window !== 'undefined') {
+      // Check if we're in a Farcaster environment
+      if (window.parent !== window) {
+        console.log('✅ Detected Farcaster environment (iframe)');
+        
+        // Try multiple approaches to call ready()
+        try {
+          // Approach 1: Direct ready call if available
+          if (window.farcaster && typeof window.farcaster.ready === 'function') {
+            window.farcaster.ready();
+            console.log('✅ Called window.farcaster.ready()');
+            return;
+          }
+          
+          // Approach 2: PostMessage to parent
+          window.parent.postMessage({ type: 'ready' }, '*');
+          console.log('✅ Sent ready postMessage to parent');
+          
+          // Approach 3: Try parent.farcaster
+          if (window.parent.farcaster && typeof window.parent.farcaster.ready === 'function') {
+            window.parent.farcaster.ready();
+            console.log('✅ Called parent.farcaster.ready()');
+          }
+          
+        } catch (error) {
+          console.error('❌ Error calling ready():', error);
+        }
+      } else {
+        console.log('⚠️ Not in Farcaster environment (not iframe)');
+      }
     }
   }, []);
 
@@ -39,7 +62,7 @@ export function Providers(props: { children: ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <MiniAppReadyHandler />
+        <FarcasterReadyHandler />
         {props.children}
       </QueryClientProvider>
     </WagmiProvider>
