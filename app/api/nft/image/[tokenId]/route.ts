@@ -43,7 +43,7 @@ export async function GET(
       
       cardId = Number(contractCardId);
       
-    } catch (error) {
+    } catch {
       // Fallback mapping
       cardId = tokenId - 1;
     }
@@ -67,7 +67,6 @@ export async function GET(
     const userAgent = request.headers.get('user-agent') || '';
     const isMetaMask = userAgent.includes('MetaMask') || userAgent.includes('metamask');
     const isCoinbase = userAgent.includes('Coinbase') || userAgent.includes('coinbase');
-    const isWarpcast = userAgent.includes('Warpcast') || userAgent.includes('Farcaster');
     
     // Get the original image path
     const originalImagePath = card.image;
