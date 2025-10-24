@@ -24,6 +24,8 @@ function FarcasterReadyHandler() {
     console.log('🌍 Window location:', window.location.href);
     console.log('🌍 Parent window:', window.parent !== window);
     console.log('🌍 Top window:', window.top !== window);
+    console.log('🌍 User agent:', navigator.userAgent);
+    console.log('🌍 Referrer:', document.referrer);
     
     // Use the EXACT pattern from official documentation with enhanced error handling
     const callReady = async () => {
