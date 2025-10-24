@@ -650,8 +650,8 @@
       ]
     },
     "/Users/zoltanalmodo/Desktop/CODE_projects/deedisco-minikit-build/contracts/contracts/FreeNFTFixed.sol": {
-      "lastModificationDate": 1761271872543,
-      "contentHash": "acc9087f86847dce16d681a3335f92fa",
+      "lastModificationDate": 1761297464051,
+      "contentHash": "735e1bd24a197eab487aafafa9685867",
       "sourceName": "contracts/FreeNFTFixed.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -679,7 +679,8 @@
       },
       "imports": [
         "@openzeppelin/contracts/token/ERC721/ERC721.sol",
-        "@openzeppelin/contracts/access/Ownable.sol"
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/Strings.sol"
       ],
       "versionPragmas": [
         "^0.8.20"

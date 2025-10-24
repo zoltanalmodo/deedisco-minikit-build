@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract FreeNFTFixed is ERC721, Ownable {
     uint256 private _tokenIdCounter;
@@ -55,7 +56,7 @@ contract FreeNFTFixed is ERC721, Ownable {
         return _tokenToCard[tokenId];
     }
 
-    // Override tokenURI to return metadata based on card ID, not token ID
+    // Override tokenURI to return metadata URL with token ID
     function tokenURI(uint256 tokenId)
         public
         view
@@ -63,12 +64,11 @@ contract FreeNFTFixed is ERC721, Ownable {
         returns (string memory)
     {
         _requireOwned(tokenId);
-        uint256 cardId = _tokenToCard[tokenId];
         return
             string(
                 abi.encodePacked(
                     _baseTokenURI,
-                    Strings.toString(cardId) // Use card ID, not token ID!
+                    Strings.toString(tokenId) // Use token ID for metadata URL
                 )
             );
     }
