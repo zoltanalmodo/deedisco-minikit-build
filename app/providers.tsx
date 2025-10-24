@@ -21,6 +21,9 @@ declare global {
 function FarcasterReadyHandler() {
   useEffect(() => {
     console.log('🚀 FarcasterReadyHandler: Attempting to call sdk.actions.ready()');
+    console.log('🌍 Window location:', window.location.href);
+    console.log('🌍 Parent window:', window.parent !== window);
+    console.log('🌍 Top window:', window.top !== window);
     
     // Use the EXACT pattern from official documentation with enhanced error handling
     const callReady = async () => {
@@ -28,9 +31,12 @@ function FarcasterReadyHandler() {
         console.log('✅ Checking SDK availability...');
         console.log('SDK object:', sdk);
         console.log('SDK actions:', sdk?.actions);
+        console.log('Window object keys:', Object.keys(window));
+        console.log('Parent window available:', !!window.parent);
         
         if (!sdk || !sdk.actions) {
           console.error('❌ SDK or sdk.actions not available');
+          console.log('Available window properties:', Object.getOwnPropertyNames(window));
           return;
         }
         
@@ -60,6 +66,16 @@ function FarcasterReadyHandler() {
         } catch (postError) {
           console.error('❌ Fallback postMessage failed:', postError);
         }
+        
+        // Fallback 3: Try direct function call
+        try {
+          if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).farcasterReady) {
+            ((window as unknown as Record<string, unknown>).farcasterReady as () => void)();
+            console.log('✅ Fallback: Called window.farcasterReady()');
+          }
+        } catch (directError) {
+          console.error('❌ Direct ready call failed:', directError);
+        }
       }
     };
 
@@ -67,6 +83,7 @@ function FarcasterReadyHandler() {
     setTimeout(callReady, 100);
     setTimeout(callReady, 500);
     setTimeout(callReady, 1000);
+    setTimeout(callReady, 2000);
   }, []);
 
   return null;
