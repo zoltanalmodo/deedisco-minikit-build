@@ -72,6 +72,12 @@ export async function GET(
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';
     const imageUrl = `${baseUrl}/api/nft/image/${tokenId}`; // Use smart image serving
     
+    // DEBUGGING: Log metadata generation
+    console.log(`🔍 [METADATA API] TokenId: ${tokenId}, CardId: ${cardId}`);
+    console.log(`🔍 [METADATA API] Card name: ${card.name}`);
+    console.log(`🔍 [METADATA API] Image URL served: ${imageUrl}`);
+    console.log(`🔍 [METADATA API] Original image path: ${card.image}`);
+    
     
     const metadata = {
       name: card.name,
@@ -108,6 +114,8 @@ export async function GET(
       }
     };
     
+    // DEBUGGING: Log final metadata
+    console.log(`🔍 [METADATA API] Final metadata:`, JSON.stringify(metadata, null, 2));
 
     return NextResponse.json(metadata, {
       headers: {
