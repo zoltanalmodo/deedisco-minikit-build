@@ -212,6 +212,12 @@ export function useMintPack() {
       console.log('📋 Selected cards array:', selectedCards);
       console.log('📋 CardIdsBigInt array:', cardIdsBigInt);
       console.log('📋 Contract ABI function:', nftContractConfig.abi.find(f => f.name === 'mintPack'));
+      console.log('🚨 CRITICAL DEBUG - About to call writeContract with:');
+      console.log('🚨 - address:', nftContractConfig.address);
+      console.log('🚨 - functionName: mintPack');
+      console.log('🚨 - args[0] (wallet):', address);
+      console.log('🚨 - args[1] (cardIds):', cardIdsBigInt);
+      console.log('🚨 - cardIds as numbers:', cardIdsBigInt.map(id => Number(id)));
       
       writeContract({
         address: nftContractConfig.address,
