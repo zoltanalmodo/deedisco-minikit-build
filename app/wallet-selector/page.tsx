@@ -108,7 +108,15 @@ function WalletSelectorContent() {
 
   // Watch for transaction confirmation
   useEffect(() => {
+    console.log('🔍 Wallet Selector transaction state:', {
+      mintingState,
+      isSuccess,
+      isMinting,
+      selectedCards: selectedCards?.length
+    });
+    
     if (mintingState === 'minting' && isSuccess) {
+      console.log('✅ Transaction confirmed! Moving to success state...');
       // Fetch NFT metadata for the minted tokens using selected cards
       const fetchMintedNFTs = async () => {
         try {

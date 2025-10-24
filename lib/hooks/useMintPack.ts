@@ -158,6 +158,19 @@ export function useMintPack() {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash,
+    // Only watch when hash is available
+    query: {
+      enabled: !!hash,
+    },
+  });
+
+  // Debug logging for transaction states
+  console.log('🔍 useMintPack state:', {
+    hash: hash?.slice(0, 10) + '...',
+    isPending,
+    isConfirming,
+    isSuccess,
+    error: error?.message
   });
 
   const mintPack = async (packType: number = 0): Promise<MintPackResult> => {
