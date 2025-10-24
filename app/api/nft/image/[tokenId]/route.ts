@@ -72,17 +72,11 @@ export async function GET(
     const originalImagePath = card.image;
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';
     
-    // DEBUGGING: Log all request details
-    console.log(`🔍 [IMAGE API] TokenId: ${tokenId}, CardId: ${cardId}`);
-    console.log(`🔍 [IMAGE API] User-Agent: ${userAgent}`);
-    console.log(`🔍 [IMAGE API] Detected MetaMask: ${isMetaMask}, Coinbase: ${isCoinbase}`);
-    console.log(`🔍 [IMAGE API] Original image path: ${originalImagePath}`);
-    console.log(`🔍 [IMAGE API] Base URL: ${baseUrl}`);
+    // Smart image serving based on wallet type
     
     // For MetaMask and Coinbase: Serve square letterboxed version
     // For Warpcast: Serve original rectangular version
     if (isMetaMask || isCoinbase) {
-      console.log(`🔍 [IMAGE API] Serving letterboxed HTML for MetaMask/Coinbase`);
       // Return HTML that forces square display with letterboxing
       const html = `
         <!DOCTYPE html>
@@ -131,7 +125,6 @@ export async function GET(
         },
       });
     } else {
-      console.log(`🔍 [IMAGE API] Serving original rectangular image for Warpcast/Other`);
       // For Warpcast and others: Return original rectangular image
       return NextResponse.redirect(`${baseUrl}${originalImagePath}`);
     }
