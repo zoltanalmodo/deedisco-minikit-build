@@ -31,7 +31,8 @@ export async function GET(
     const metadata = {
       name: card.name,
       description: card.description,
-      image: `${baseUrl}${card.image}`,
+      // Use HTML page that forces horizontal aspect ratio
+      image: `${baseUrl}/api/nft/image/${cardId}`,
       external_url: baseUrl,
       attributes: card.attributes,
       // OpenSea metadata for proper display
@@ -41,8 +42,8 @@ export async function GET(
       image_data: null,
       image_details: {
         format: "image/jpeg",
-        width: 1500,  // Wide rectangular format
-        height: 500,  // Maintains horizontal rectangular shape (3:1 ratio)
+        width: 600,  // Wide rectangular format
+        height: 200,  // Maintains horizontal rectangular shape (3:1 ratio)
         bytes: null
       },
       // Add contract metadata
