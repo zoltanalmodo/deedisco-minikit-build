@@ -11,7 +11,6 @@ export async function GET(
     // The tokenId here is the ACTUAL TOKEN ID (1, 2, 3, etc.) from the contract
     const tokenId = parseInt(params.tokenId);
     
-    console.log('🔍 NFT Metadata API called with tokenId:', params.tokenId);
     
     if (isNaN(tokenId) || tokenId < 1) {
       console.error('❌ Invalid token ID:', tokenId);
@@ -27,9 +26,6 @@ export async function GET(
       transport: http(config.rpcUrl)
     });
     
-    console.log('🔗 Calling contract.getCardId for tokenId:', tokenId);
-    console.log('🔗 Contract address:', config.nftContractAddress);
-    console.log('🔗 RPC URL:', config.rpcUrl);
     
     let cardId: number;
     
@@ -50,10 +46,6 @@ export async function GET(
       });
       
       cardId = Number(contractCardId);
-      console.log('✅ Contract returned cardId:', cardId, 'for tokenId:', tokenId);
-      console.log('✅ Contract response type:', typeof contractCardId);
-      console.log('✅ Contract response value:', contractCardId.toString());
-      console.log('✅ Contract response BigInt:', contractCardId);
       
     } catch (error) {
       console.error('❌ Failed to call contract.getCardId:', error);
@@ -62,18 +54,11 @@ export async function GET(
       console.error('❌ Error stack:', (error as Error).stack);
       // Fallback to wrong mapping for debugging
       cardId = tokenId - 1;
-      console.log('⚠️ Using fallback mapping: tokenId', tokenId, '-> cardId', cardId);
     }
 
     // Get the card metadata directly using card ID (0-based index)
     const card = cardMetadata[cardId];
     
-    console.log('🎯 Card metadata for cardId', cardId, ':', {
-      name: card?.name,
-      image: card?.image,
-      carousel: Math.floor(cardId / 8) + 1,
-      position: (cardId % 8) + 1
-    });
     
     if (!card) {
       console.error('❌ Card not found for cardId:', cardId);
@@ -85,14 +70,8 @@ export async function GET(
 
     // Create the NFT metadata following ERC-721 standard with OpenSea extensions
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';
-    const imageUrl = `${baseUrl}${card.image}`; // Use direct image URL, not HTML wrapper
+    const imageUrl = `${baseUrl}/api/nft/image/${tokenId}`; // Use smart image serving
     
-    console.log('🖼️ Generated metadata for cardId', cardId, ':', {
-      name: card.name,
-      image: imageUrl,
-      originalImage: card.image,
-      baseUrl: baseUrl
-    });
     
     const metadata = {
       name: card.name,
@@ -129,11 +108,6 @@ export async function GET(
       }
     };
     
-    console.log('📤 Returning metadata:', JSON.stringify(metadata, null, 2));
-    console.log('📤 Final image URL being served:', imageUrl);
-    console.log('📤 Final cardId being served:', cardId);
-    console.log('📤 Final card name being served:', card.name);
-    console.log('📤 Final card image path being served:', card.image);
 
     return NextResponse.json(metadata, {
       headers: {

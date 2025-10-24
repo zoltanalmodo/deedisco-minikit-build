@@ -190,34 +190,11 @@ export function useMintPack() {
       
       setSelectedCards(selectedCards);
       
-      console.log('🎲 SELECTED CARDS FOR MINTING:', selectedCards);
-      console.log('🎯 Card details:', selectedCards.map(cardId => {
-        const carousel = Math.floor(cardId / 8) + 1;
-        const position = (cardId % 8) + 1;
-        return {
-          cardId,
-          carousel,
-          position,
-          image: `/carousel${carousel}-image${position}.jpg`
-        };
-      }));
       
       // REAL NFT MINTING - Call the actual contract with selected card IDs
       // Convert card indices to BigInt array for Solidity uint256[]
       const cardIdsBigInt = selectedCards.map(cardId => BigInt(cardId));
       
-      console.log('📋 Calling contract with cardIdsBigInt:', cardIdsBigInt);
-      console.log('📋 Contract address:', nftContractConfig.address);
-      console.log('📋 Wallet address:', address);
-      console.log('📋 Selected cards array:', selectedCards);
-      console.log('📋 CardIdsBigInt array:', cardIdsBigInt);
-      console.log('📋 Contract ABI function:', nftContractConfig.abi.find(f => f.name === 'mintPack'));
-      console.log('🚨 CRITICAL DEBUG - About to call writeContract with:');
-      console.log('🚨 - address:', nftContractConfig.address);
-      console.log('🚨 - functionName: mintPack');
-      console.log('🚨 - args[0] (wallet):', address);
-      console.log('🚨 - args[1] (cardIds):', cardIdsBigInt);
-      console.log('🚨 - cardIds as numbers:', cardIdsBigInt.map(id => Number(id)));
       
       writeContract({
         address: nftContractConfig.address,
