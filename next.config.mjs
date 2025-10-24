@@ -24,6 +24,21 @@ const nextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
+
+  // Fix iframe embedding for Farcaster Mini App
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' https://farcaster.xyz https://warpcast.com https://*.farcaster.xyz https://*.warpcast.com https://*.vercel.app",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
