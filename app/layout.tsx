@@ -69,6 +69,24 @@ export default function RootLayout({
       <body className="bg-[#1a1a1a]">
         <Providers>{children}</Providers>
         <Toaster /> {/* 👈 mount once so useToast() toasts are visible */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Call ready() for Farcaster Mini App
+              if (typeof window !== 'undefined') {
+                window.addEventListener('load', function() {
+                  console.log('🚀 Calling ready() for Farcaster Mini App');
+                  if (window.farcaster && window.farcaster.ready) {
+                    window.farcaster.ready();
+                  } else {
+                    // Fallback: try to call ready via postMessage
+                    window.parent.postMessage({ type: 'ready' }, '*');
+                  }
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )
