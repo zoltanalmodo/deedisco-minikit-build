@@ -6,18 +6,18 @@ export async function GET(
   { params }: { params: { tokenId: string } }
 ) {
   try {
-    const tokenId = parseInt(params.tokenId);
+    // The tokenId here is actually the CARD ID (0-23) from our new contract
+    const cardId = parseInt(params.tokenId);
     
-    if (isNaN(tokenId) || tokenId < 1 || tokenId > 24) {
+    if (isNaN(cardId) || cardId < 0 || cardId >= 24) {
       return NextResponse.json(
-        { error: 'Invalid token ID' },
+        { error: 'Invalid card ID' },
         { status: 400 }
       );
     }
 
-    // Get the card metadata (tokenId is 1-based, array is 0-based)
-    const cardIndex = tokenId - 1;
-    const card = cardMetadata[cardIndex];
+    // Get the card metadata directly using card ID (0-based index)
+    const card = cardMetadata[cardId];
     
     if (!card) {
       return NextResponse.json(
@@ -26,7 +26,7 @@ export async function GET(
       );
     }
 
-    // Create the NFT metadata following ERC-721 standard
+    // Create the NFT metadata following ERC-721 standard with OpenSea extensions
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';
     const metadata = {
       name: card.name,
@@ -34,6 +34,17 @@ export async function GET(
       image: `${baseUrl}${card.image}`,
       external_url: baseUrl,
       attributes: card.attributes,
+      // OpenSea metadata for proper display
+      animation_url: null,
+      background_color: null,
+      // Image properties to maintain aspect ratio (approximately 3:1 - horizontal/rectangular)
+      image_data: null,
+      image_details: {
+        format: "image/jpeg",
+        width: 1500,  // Wide rectangular format
+        height: 500,  // Maintains horizontal rectangular shape (3:1 ratio)
+        bytes: null
+      },
       // Add contract metadata
       contract: {
         name: config.contractName,
