@@ -208,6 +208,10 @@ export function useMintPack() {
       
       console.log('📋 Calling contract with cardIdsBigInt:', cardIdsBigInt);
       console.log('📋 Contract address:', nftContractConfig.address);
+      console.log('📋 Wallet address:', address);
+      console.log('📋 Selected cards array:', selectedCards);
+      console.log('📋 CardIdsBigInt array:', cardIdsBigInt);
+      console.log('📋 Contract ABI function:', nftContractConfig.abi.find(f => f.name === 'mintPack'));
       
       writeContract({
         address: nftContractConfig.address,

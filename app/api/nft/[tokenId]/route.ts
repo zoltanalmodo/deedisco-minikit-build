@@ -28,6 +28,8 @@ export async function GET(
     });
     
     console.log('🔗 Calling contract.getCardId for tokenId:', tokenId);
+    console.log('🔗 Contract address:', config.nftContractAddress);
+    console.log('🔗 RPC URL:', config.rpcUrl);
     
     let cardId: number;
     
@@ -49,9 +51,15 @@ export async function GET(
       
       cardId = Number(contractCardId);
       console.log('✅ Contract returned cardId:', cardId, 'for tokenId:', tokenId);
+      console.log('✅ Contract response type:', typeof contractCardId);
+      console.log('✅ Contract response value:', contractCardId.toString());
+      console.log('✅ Contract response BigInt:', contractCardId);
       
     } catch (error) {
       console.error('❌ Failed to call contract.getCardId:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      console.error('❌ Error message:', (error as Error).message);
+      console.error('❌ Error stack:', (error as Error).stack);
       // Fallback to wrong mapping for debugging
       cardId = tokenId - 1;
       console.log('⚠️ Using fallback mapping: tokenId', tokenId, '-> cardId', cardId);
@@ -114,6 +122,10 @@ export async function GET(
     };
     
     console.log('📤 Returning metadata:', JSON.stringify(metadata, null, 2));
+    console.log('📤 Final image URL being served:', imageUrl);
+    console.log('📤 Final cardId being served:', cardId);
+    console.log('📤 Final card name being served:', card.name);
+    console.log('📤 Final card image path being served:', card.image);
 
     return NextResponse.json(metadata, {
       headers: {
