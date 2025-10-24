@@ -6,7 +6,10 @@ export async function GET(
 ) {
   const cardId = parseInt(params.cardId);
   
+  console.log('🖼️ Image API called with cardId:', cardId);
+  
   if (isNaN(cardId) || cardId < 0 || cardId >= 24) {
+    console.error('❌ Invalid cardId for image:', cardId);
     return NextResponse.json(
       { error: 'Invalid card ID' },
       { status: 400 }
@@ -17,6 +20,12 @@ export async function GET(
   const carousel = Math.floor(cardId / 8) + 1;
   const position = (cardId % 8) + 1;
   const imagePath = `/carousel${carousel}-image${position}.jpg`;
+  
+  console.log('🎯 Image mapping for cardId', cardId, ':', {
+    carousel,
+    position,
+    imagePath
+  });
   
   // Return HTML that forces horizontal aspect ratio
   const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';

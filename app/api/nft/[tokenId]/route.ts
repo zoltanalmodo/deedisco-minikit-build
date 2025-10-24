@@ -9,7 +9,10 @@ export async function GET(
     // The tokenId here is actually the CARD ID (0-23) from our new contract
     const cardId = parseInt(params.tokenId);
     
+    console.log('🔍 NFT Metadata API called with tokenId:', params.tokenId, 'parsed as cardId:', cardId);
+    
     if (isNaN(cardId) || cardId < 0 || cardId >= 24) {
+      console.error('❌ Invalid card ID:', cardId);
       return NextResponse.json(
         { error: 'Invalid card ID' },
         { status: 400 }
@@ -19,7 +22,15 @@ export async function GET(
     // Get the card metadata directly using card ID (0-based index)
     const card = cardMetadata[cardId];
     
+    console.log('🎯 Card metadata for cardId', cardId, ':', {
+      name: card?.name,
+      image: card?.image,
+      carousel: Math.floor(cardId / 8) + 1,
+      position: (cardId % 8) + 1
+    });
+    
     if (!card) {
+      console.error('❌ Card not found for cardId:', cardId);
       return NextResponse.json(
         { error: 'Card not found' },
         { status: 404 }
@@ -28,11 +39,20 @@ export async function GET(
 
     // Create the NFT metadata following ERC-721 standard with OpenSea extensions
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';
+    const imageUrl = `${baseUrl}/api/nft/image/${cardId}`;
+    
+    console.log('🖼️ Generated metadata for cardId', cardId, ':', {
+      name: card.name,
+      image: imageUrl,
+      originalImage: card.image,
+      baseUrl: baseUrl
+    });
+    
     const metadata = {
       name: card.name,
       description: card.description,
       // Use HTML page that forces horizontal aspect ratio
-      image: `${baseUrl}/api/nft/image/${cardId}`,
+      image: imageUrl,
       external_url: baseUrl,
       attributes: card.attributes,
       // OpenSea metadata for proper display
@@ -54,6 +74,8 @@ export async function GET(
         chainId: config.chainId
       }
     };
+    
+    console.log('📤 Returning metadata:', JSON.stringify(metadata, null, 2));
 
     return NextResponse.json(metadata, {
       headers: {

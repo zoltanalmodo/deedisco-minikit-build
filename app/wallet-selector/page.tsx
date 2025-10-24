@@ -270,6 +270,19 @@ function WalletSelectorContent() {
 
   // Show confirmation page after successful minting
   if (mintingState === 'success') {
+    console.log('🎉 CONFIRMATION PAGE - Selected cards:', selectedCards);
+    console.log('🎯 Confirmation card details:', selectedCards.map(cardId => {
+      const carousel = Math.floor(cardId / 8) + 1;
+      const position = (cardId % 8) + 1;
+      return {
+        cardId,
+        carousel,
+        position,
+        image: `/carousel${carousel}-image${position}.jpg`
+      };
+    }));
+    console.log('🎯 Minted NFTs:', mintedNFTs);
+    
     return (
       <main
         className="flex flex-col items-center w-full max-w-md mx-auto px-8 py-4 bg-white text-black"
