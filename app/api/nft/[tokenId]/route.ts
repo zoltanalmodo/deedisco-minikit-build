@@ -1,22 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { config, cardMetadata } from '../../../../lib/config';
+import { createPublicClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { tokenId: string } }
 ) {
   try {
-    // The tokenId here is actually the CARD ID (0-23) from our new contract
-    const cardId = parseInt(params.tokenId);
+    // The tokenId here is the ACTUAL TOKEN ID (1, 2, 3, etc.) from the contract
+    const tokenId = parseInt(params.tokenId);
     
-    console.log('🔍 NFT Metadata API called with tokenId:', params.tokenId, 'parsed as cardId:', cardId);
+    console.log('🔍 NFT Metadata API called with tokenId:', params.tokenId);
     
-    if (isNaN(cardId) || cardId < 0 || cardId >= 24) {
-      console.error('❌ Invalid card ID:', cardId);
+    if (isNaN(tokenId) || tokenId < 1) {
+      console.error('❌ Invalid token ID:', tokenId);
       return NextResponse.json(
-        { error: 'Invalid card ID' },
+        { error: 'Invalid token ID' },
         { status: 400 }
       );
+    }
+
+    // Call the contract's getCardId function to get the actual cardId
+    const client = createPublicClient({
+      chain: baseSepolia,
+      transport: http(config.rpcUrl)
+    });
+    
+    console.log('🔗 Calling contract.getCardId for tokenId:', tokenId);
+    
+    let cardId: number;
+    
+    try {
+      const contractCardId = await client.readContract({
+        address: config.nftContractAddress as `0x${string}`,
+        abi: [
+          {
+            "inputs": [{ "internalType": "uint256", "name": "tokenId", "type": "uint256" }],
+            "name": "getCardId",
+            "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+            "stateMutability": "view",
+            "type": "function"
+          }
+        ],
+        functionName: 'getCardId',
+        args: [BigInt(tokenId)]
+      });
+      
+      cardId = Number(contractCardId);
+      console.log('✅ Contract returned cardId:', cardId, 'for tokenId:', tokenId);
+      
+    } catch (error) {
+      console.error('❌ Failed to call contract.getCardId:', error);
+      // Fallback to wrong mapping for debugging
+      cardId = tokenId - 1;
+      console.log('⚠️ Using fallback mapping: tokenId', tokenId, '-> cardId', cardId);
     }
 
     // Get the card metadata directly using card ID (0-based index)
@@ -39,7 +77,7 @@ export async function GET(
 
     // Create the NFT metadata following ERC-721 standard with OpenSea extensions
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://deedisco-minikit-app.vercel.app';
-    const imageUrl = `${baseUrl}/api/nft/image/${cardId}`;
+    const imageUrl = `${baseUrl}${card.image}`; // Use direct image URL, not HTML wrapper
     
     console.log('🖼️ Generated metadata for cardId', cardId, ':', {
       name: card.name,
@@ -51,7 +89,7 @@ export async function GET(
     const metadata = {
       name: card.name,
       description: card.description,
-      // Use HTML page that forces horizontal aspect ratio
+      // Use direct image URL for better wallet compatibility
       image: imageUrl,
       external_url: baseUrl,
       attributes: card.attributes,
@@ -62,8 +100,8 @@ export async function GET(
       image_data: null,
       image_details: {
         format: "image/jpeg",
-        width: 600,  // Wide rectangular format
-        height: 200,  // Maintains horizontal rectangular shape (3:1 ratio)
+        width: 1500,  // Wide rectangular format
+        height: 500,  // Maintains horizontal rectangular shape (3:1 ratio)
         bytes: null
       },
       // Add contract metadata
