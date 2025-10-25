@@ -188,6 +188,8 @@ function WalletSelectorContent() {
 
   // Handle wallet selection (NOT connection)
   const handleWalletSelect = (wallet: string) => {
+    console.log('🎯 Wallet selected:', wallet);
+    console.log('🔍 Current state:', { walletType, isMiniApp, isLoading });
     setWalletType(wallet);
   };
 
@@ -515,7 +517,10 @@ function WalletSelectorContent() {
         {/* Warpcast Wallet - Only show in Mini App mode */}
         {isMiniApp && (
           <button
-            onClick={() => handleWalletSelect('warpcast')}
+            onClick={() => {
+              console.log('🟣 Farcaster wallet button clicked!');
+              handleWalletSelect('warpcast');
+            }}
             disabled={isLoading}
             className={`w-full p-3 border-2 transition-all ${
               walletType === 'warpcast'
