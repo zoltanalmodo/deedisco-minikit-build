@@ -154,7 +154,6 @@ export function useMintPack() {
   const [result, setResult] = useState<MintPackResult | null>(null);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [manualIsSuccess, setManualIsSuccess] = useState(false);
-  const [isManuallyChecking, setIsManuallyChecking] = useState(false);
   
   const { address } = useAccount();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
@@ -173,24 +172,26 @@ export function useMintPack() {
 
   // Manual transaction confirmation checker - polls the blockchain directly
   useEffect(() => {
-    if (!hash || wagmiIsSuccess || manualIsSuccess || isManuallyChecking) {
+    if (!hash || wagmiIsSuccess || manualIsSuccess) {
       return;
     }
 
     console.log('🔍 Starting manual transaction confirmation check for hash:', hash);
-    setIsManuallyChecking(true);
 
     let pollCount = 0;
-    const maxPolls = 60; // 60 seconds total (60 polls * 1 second interval)
+    const maxPolls = 60; // 60 seconds total (60 polls * 2 second interval)
+    let intervalId: NodeJS.Timeout | null = null;
     
     const checkTransaction = async () => {
+      pollCount++;
+      
       try {
         if (!publicClient) {
           console.log('⚠️ Public client not available, waiting...');
           return;
         }
 
-        console.log(`🔍 Manual poll #${pollCount + 1}: Checking transaction receipt...`);
+        console.log(`🔍 Manual poll #${pollCount}: Checking transaction receipt...`);
         
         const receipt = await publicClient.getTransactionReceipt({
           hash: hash as `0x${string}`,
@@ -201,42 +202,37 @@ export function useMintPack() {
           console.log('📊 Receipt status:', receipt.status);
           console.log('📊 Block number:', receipt.blockNumber);
           
+          if (intervalId) clearInterval(intervalId);
+          
           if (receipt.status === 'success') {
             setManualIsSuccess(true);
-            setIsManuallyChecking(false);
-            clearInterval(pollInterval);
           } else {
             console.log('❌ Transaction failed with status:', receipt.status);
-            setIsManuallyChecking(false);
-            clearInterval(pollInterval);
           }
         } else {
           console.log('⏳ Transaction not yet confirmed, continuing to poll...');
         }
       } catch {
         // Transaction not yet mined, continue polling
-        console.log('⏳ Transaction pending (poll #' + (pollCount + 1) + ')...');
+        console.log('⏳ Transaction pending (poll #' + pollCount + ')...');
       }
 
-      pollCount++;
       if (pollCount >= maxPolls) {
         console.log('⏰ Manual check timeout reached after 60 seconds');
-        setIsManuallyChecking(false);
-        clearInterval(pollInterval);
+        if (intervalId) clearInterval(intervalId);
       }
     };
 
-    // Start polling immediately
-    checkTransaction();
+    // Start polling every 2 seconds (Base Sepolia block time is ~2 seconds)
+    intervalId = setInterval(checkTransaction, 2000);
     
-    // Then poll every 1 second
-    const pollInterval = setInterval(checkTransaction, 1000);
+    // Check immediately
+    checkTransaction();
 
     return () => {
-      clearInterval(pollInterval);
-      setIsManuallyChecking(false);
+      if (intervalId) clearInterval(intervalId);
     };
-  }, [hash, wagmiIsSuccess, manualIsSuccess, isManuallyChecking, publicClient]);
+  }, [hash, wagmiIsSuccess, manualIsSuccess, publicClient]);
 
   // Debug logging for transaction states
   console.log('🔍 useMintPack state:', {
@@ -246,7 +242,6 @@ export function useMintPack() {
     wagmiIsSuccess,
     manualIsSuccess,
     isSuccess,
-    isManuallyChecking,
     error: error?.message
   });
 
@@ -321,7 +316,7 @@ export function useMintPack() {
 
   return {
     mintPack,
-    isLoading: isLoading || isPending || isConfirming || isManuallyChecking,
+    isLoading: isLoading || isPending || isConfirming,
     result,
     error,
     transactionHash: hash,
