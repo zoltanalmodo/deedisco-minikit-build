@@ -48,14 +48,31 @@ function WalletSelectorContent() {
     const detectMiniApp = () => {
       // Check for Farcaster Mini App environment
       const isFarcasterMiniApp = Boolean(
+        // Check if we're in an iframe (Mini Apps run in iframes)
+        window.self !== window.top ||
+        // Check hostname patterns
         window.location.hostname.includes('warpcast.com') ||
         window.location.hostname.includes('farcaster.xyz') ||
+        // Check user agent
         window.navigator.userAgent.includes('Farcaster') ||
         window.navigator.userAgent.includes('Warpcast') ||
         // Check for Mini App specific APIs
         ((window as unknown as { farcaster?: unknown }).farcaster ||
-        (window as unknown as { warpcast?: unknown }).warpcast)
+        (window as unknown as { warpcast?: unknown }).warpcast) ||
+        // Check if we're in the Farcaster preview environment
+        window.location.href.includes('farcaster.xyz') ||
+        window.location.href.includes('warpcast.com')
       );
+      
+      console.log('🔍 Mini App detection:', {
+        isIframe: window.self !== window.top,
+        hostname: window.location.hostname,
+        href: window.location.href,
+        userAgent: window.navigator.userAgent,
+        farcaster: (window as unknown as { farcaster?: unknown }).farcaster,
+        warpcast: (window as unknown as { warpcast?: unknown }).warpcast,
+        isFarcasterMiniApp
+      });
       
       setIsMiniApp(isFarcasterMiniApp);
     };
