@@ -158,15 +158,15 @@ export function useMintPack() {
   const { address } = useAccount();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   
-  // Only use Wagmi's hook if we don't have manual success yet
+  // Always call the hook but disable it when manualIsSuccess is true
   const wagmiResult = useWaitForTransactionReceipt({
-    hash: manualIsSuccess ? undefined : hash, // Completely disable by passing undefined hash
+    hash: manualIsSuccess ? undefined : hash, // Pass undefined to completely disable
     query: {
       enabled: !!hash && !manualIsSuccess,
     },
   });
   
-  // Use manual success values when available, otherwise fall back to Wagmi
+  // When manualIsSuccess is true, completely override Wagmi's values
   const isConfirming = manualIsSuccess ? false : wagmiResult.isLoading;
   const wagmiIsSuccess = manualIsSuccess ? false : wagmiResult.isSuccess;
 
