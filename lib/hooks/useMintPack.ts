@@ -159,9 +159,9 @@ export function useMintPack() {
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: wagmiIsSuccess } = useWaitForTransactionReceipt({
     hash,
-    // Only watch when hash is available
+    // Disable wagmi polling when we have manual success to prevent CSP errors
     query: {
-      enabled: !!hash,
+      enabled: !!hash && !manualIsSuccess,
     },
   });
 
@@ -196,7 +196,11 @@ export function useMintPack() {
           console.log('✅ Server check: Transaction confirmed!');
           console.log('📊 Block number:', data.blockNumber);
           
-          if (intervalId) clearInterval(intervalId);
+          // Stop polling immediately
+          if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+          }
           setManualIsSuccess(true);
         } else if (data.confirmed && data.status !== 'success') {
           console.log('❌ Transaction failed with status:', data.status);
@@ -212,7 +216,10 @@ export function useMintPack() {
 
       if (pollCount >= maxPolls) {
         console.log('⏰ Server check timeout reached after 60 seconds - assuming success');
-        if (intervalId) clearInterval(intervalId);
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
         // Assume success after timeout since transaction was submitted
         setManualIsSuccess(true);
       }
