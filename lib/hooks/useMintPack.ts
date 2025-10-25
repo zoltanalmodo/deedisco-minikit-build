@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { useAccount } from 'wagmi';
+import { useAccount, usePublicClient } from 'wagmi';
 import { nftContractConfig } from '../contract';
 import { config } from '../config';
 // import { mockContract } from '../mock-contract';
@@ -153,23 +153,100 @@ export function useMintPack() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<MintPackResult | null>(null);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [manualIsSuccess, setManualIsSuccess] = useState(false);
+  const [isManuallyChecking, setIsManuallyChecking] = useState(false);
   
   const { address } = useAccount();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+  const { isLoading: isConfirming, isSuccess: wagmiIsSuccess } = useWaitForTransactionReceipt({
     hash,
     // Only watch when hash is available
     query: {
       enabled: !!hash,
     },
   });
+  
+  const publicClient = usePublicClient();
+
+  // Combine wagmi success with manual success
+  const isSuccess = wagmiIsSuccess || manualIsSuccess;
+
+  // Manual transaction confirmation checker - polls the blockchain directly
+  useEffect(() => {
+    if (!hash || wagmiIsSuccess || manualIsSuccess || isManuallyChecking) {
+      return;
+    }
+
+    console.log('🔍 Starting manual transaction confirmation check for hash:', hash);
+    setIsManuallyChecking(true);
+
+    let pollCount = 0;
+    const maxPolls = 60; // 60 seconds total (60 polls * 1 second interval)
+    
+    const checkTransaction = async () => {
+      try {
+        if (!publicClient) {
+          console.log('⚠️ Public client not available, waiting...');
+          return;
+        }
+
+        console.log(`🔍 Manual poll #${pollCount + 1}: Checking transaction receipt...`);
+        
+        const receipt = await publicClient.getTransactionReceipt({
+          hash: hash as `0x${string}`,
+        });
+
+        if (receipt) {
+          console.log('✅ Manual check: Transaction confirmed!', receipt);
+          console.log('📊 Receipt status:', receipt.status);
+          console.log('📊 Block number:', receipt.blockNumber);
+          
+          if (receipt.status === 'success') {
+            setManualIsSuccess(true);
+            setIsManuallyChecking(false);
+            clearInterval(pollInterval);
+          } else {
+            console.log('❌ Transaction failed with status:', receipt.status);
+            setIsManuallyChecking(false);
+            clearInterval(pollInterval);
+          }
+        } else {
+          console.log('⏳ Transaction not yet confirmed, continuing to poll...');
+        }
+      } catch {
+        // Transaction not yet mined, continue polling
+        console.log('⏳ Transaction pending (poll #' + (pollCount + 1) + ')...');
+      }
+
+      pollCount++;
+      if (pollCount >= maxPolls) {
+        console.log('⏰ Manual check timeout reached after 60 seconds');
+        setIsManuallyChecking(false);
+        clearInterval(pollInterval);
+      }
+    };
+
+    // Start polling immediately
+    checkTransaction();
+    
+    // Then poll every 1 second
+    const pollInterval = setInterval(checkTransaction, 1000);
+
+    return () => {
+      clearInterval(pollInterval);
+      setIsManuallyChecking(false);
+    };
+  }, [hash, wagmiIsSuccess, manualIsSuccess, isManuallyChecking, publicClient]);
 
   // Debug logging for transaction states
   console.log('🔍 useMintPack state:', {
     hash: hash?.slice(0, 10) + '...',
     isPending,
     isConfirming,
+    wagmiIsSuccess,
+    manualIsSuccess,
     isSuccess,
+    isManuallyChecking,
     error: error?.message
   });
 
@@ -244,7 +321,7 @@ export function useMintPack() {
 
   return {
     mintPack,
-    isLoading: isLoading || isPending || isConfirming,
+    isLoading: isLoading || isPending || isConfirming || isManuallyChecking,
     result,
     error,
     transactionHash: hash,
