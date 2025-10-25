@@ -160,7 +160,7 @@ export function useMintPack() {
   
   // Only use Wagmi's hook if we don't have manual success yet
   const wagmiResult = useWaitForTransactionReceipt({
-    hash,
+    hash: manualIsSuccess ? undefined : hash, // Completely disable by passing undefined hash
     query: {
       enabled: !!hash && !manualIsSuccess,
     },
