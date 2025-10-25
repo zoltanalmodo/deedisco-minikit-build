@@ -157,13 +157,18 @@ export function useMintPack() {
   
   const { address } = useAccount();
   const { writeContract, data: hash, error, isPending } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: wagmiIsSuccess } = useWaitForTransactionReceipt({
+  
+  // Only use Wagmi's hook if we don't have manual success yet
+  const wagmiResult = useWaitForTransactionReceipt({
     hash,
-    // Disable wagmi polling when we have manual success to prevent CSP errors
     query: {
       enabled: !!hash && !manualIsSuccess,
     },
   });
+  
+  // Use manual success values when available, otherwise fall back to Wagmi
+  const isConfirming = manualIsSuccess ? false : wagmiResult.isLoading;
+  const wagmiIsSuccess = manualIsSuccess ? false : wagmiResult.isSuccess;
 
   // Combine wagmi success with manual success
   const isSuccess = wagmiIsSuccess || manualIsSuccess;
