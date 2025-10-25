@@ -200,15 +200,32 @@ function WalletSelectorContent() {
     setIsLoading(true);
     
     try {
+      // Log available connectors for debugging
+      console.log('🔍 Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })));
+      
       const targetConnector = connectors.find(c => {
         if (walletType === 'coinbase') return c.name.toLowerCase().includes('coinbase');
         if (walletType === 'metamask') return c.name.toLowerCase().includes('metamask');
-        if (walletType === 'warpcast') return c.name.toLowerCase().includes('warpcast');
+        if (walletType === 'warpcast') {
+          // Check for Farcaster Mini App connector with multiple possible names
+          return c.name.toLowerCase().includes('warpcast') || 
+                 c.name.toLowerCase().includes('farcaster') ||
+                 c.name.toLowerCase().includes('mini') ||
+                 c.id.toLowerCase().includes('farcaster') ||
+                 c.id.toLowerCase().includes('warpcast');
+        }
         return false;
       });
 
+      console.log('🎯 Target connector for', walletType, ':', targetConnector?.name, targetConnector?.id);
+
       if (targetConnector) {
+        console.log('🔗 Attempting to connect with:', targetConnector.name, targetConnector.id);
         await connect({ connector: targetConnector });
+        console.log('✅ Connection successful!');
+      } else {
+        console.error('❌ No connector found for wallet type:', walletType);
+        console.error('Available connectors:', connectors.map(c => ({ name: c.name, id: c.id })));
       }
     } catch (error) {
       console.error('Connection error:', error);
