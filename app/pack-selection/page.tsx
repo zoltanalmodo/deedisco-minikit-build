@@ -10,8 +10,8 @@ import { useSearchParams } from "next/navigation"
 const packData = [
   { id: 1, src: "/pack-all-random.png", alt: "All Random Pack", name: "All Random Pack" },
   { id: 2, src: "/pack-guaranteed-top.png", alt: "Guaranteed Top Pack", name: "Guaranteed Top Pack" },
-  { id: 3, src: "/pack-guaranteed-mid.png", alt: "Guaranteed Middle Pack", name: "Guaranteed Middle Pack" },
-  { id: 4, src: "/pack-guaranteed-bot.png", alt: "Guaranteed Bottom Pack", name: "Guaranteed Bottom Pack" },
+  { id: 3, src: "/pack-guaranteed-middle.png", alt: "Guaranteed Middle Pack", name: "Guaranteed Middle Pack" },
+  { id: 4, src: "/pack-guaranteed-bottom.png", alt: "Guaranteed Bottom Pack", name: "Guaranteed Bottom Pack" },
 ]
 
 function PackSelectionContent() {
